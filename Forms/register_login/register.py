@@ -33,7 +33,7 @@ async def input_login(message: types.Message, state: FSMContext):
                              reply_markup=BotTools.construction_keyboard(
                                  buttons=['Назад'],
                                  call_back=['Back']))
-        await state.set_state(states_reg_log.StepsLogin.NAME)
+        await state.set_state(states_reg_log.StepsReg.NAME)
 
 
 async def input_password(message: types.Message, state: FSMContext):
@@ -66,10 +66,17 @@ async def check_data(message: types.Message, state: FSMContext):
                                  call_back=['Back']))
         await state.set_state(states_reg_log.StepsReg.PASSWORD)
     else:
-        await message.answer('Добро пожаловать в D&D бота!',
-                             reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=['Персонажи', 'Компании'],
-                                 call_back=['Character', 'Story'])
-                             )
-        con.work_with_MySQL(f'INSERT INTO users(user_id, name_user, password, is_login)'
-                            f' VALUES({message.from_user.id}, "{name}", "{password}", 1)')
+        try:
+            con.work_with_MySQL(f'INSERT INTO users(user_id, name_user, password, is_login)'
+                                f' VALUES({message.from_user.id}, "{name}", "{password}", 1)')
+            await message.answer('Добро пожаловать в D&D бота!',
+                                 reply_markup=BotTools.construction_inline_keyboard(
+                                     buttons=['Персонажи', 'Компании'],
+                                     call_back=['Character', 'Story'])
+                                 )
+        except Exception as err:
+            await message.answer(f'''Произошла ошибка:
+{err}
+
+Сообщите об этом администратору и попробуйте повторить попытку позже''')
+

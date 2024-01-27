@@ -25,13 +25,14 @@ con = Connection(host=env.read_json_data('DB_host'),
 
 
 async def input_login(message: types.Message, state: FSMContext):
-    query_log = f'SELECT is_login FROM users WHERE user_id = {message.from_user.id}'
-    if con.work_with_MySQL(query_log):
-        await message.answer('Введите логин:',
-                             reply_markup=BotTools.construction_keyboard(
-                                 buttons=['Назад'],
-                                 call_back=['Back']))
-        await state.set_state(states_reg_log.StepsLogin.NAME)
+    print('i this')
+    # query_log = f'SELECT is_login FROM users WHERE user_id = {message.from_user.id}'
+    # if con.work_with_MySQL(query_log):
+    await message.answer('Введите логин:',
+                         reply_markup=BotTools.construction_keyboard(
+                             buttons=['Назад'],
+                             call_back=['Back']))
+    await state.set_state(states_reg_log.StepsLogin.NAME)
 
 
 async def input_password(message: types.Message, state: FSMContext):
@@ -43,7 +44,8 @@ async def input_password(message: types.Message, state: FSMContext):
     await state.set_state(states_reg_log.StepsLogin.PASSWORD)
 
 
-async def check_data(message: types.Message):
+async def check_data(message: types.Message, state: FSMContext):
+    await state.clear()
     name = data['name']
     password = message.text
     # id_user = con.work_with_MySQL(f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"')

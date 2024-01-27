@@ -39,14 +39,14 @@ async def cmd_start(message: types.Message):
                                  call_back=['Reg', 'Log']))
 
 
-dp.message.register(login_step.input_login, F.text == 'Авторизация')
+dp.message.register(login_step.input_login, (F.text == 'Авторизация') | (F.text == 'Попробовать сново'))
 dp.message.register(login_step.input_password, login_step.states_reg_log.StepsLogin.NAME)
 dp.message.register(login_step.check_data, login_step.states_reg_log.StepsLogin.PASSWORD)
 
 dp.message.register(reg_step.input_login, F.text == 'Регистрация')
-dp.message.register(reg_step.input_password, login_step.states_reg_log.StepsReg.NAME)
-dp.message.register(reg_step.input_repeat_password, login_step.states_reg_log.StepsReg.PASSWORD)
-dp.message.register(reg_step.check_data, login_step.states_reg_log.StepsReg.REPEAT_PASSWORD)
+dp.message.register(reg_step.input_password, reg_step.states_reg_log.StepsReg.NAME)
+dp.message.register(reg_step.input_repeat_password, reg_step.states_reg_log.StepsReg.PASSWORD)
+dp.message.register(reg_step.check_data, reg_step.states_reg_log.StepsReg.REPEAT_PASSWORD)
 
 
 # Запуск процесса поллинга новых апдейтов
