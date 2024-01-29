@@ -2,10 +2,10 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
 
-from aiogram import F
-from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command
-from aiogram.fsm.state import StatesGroup, State
+# from aiogram import F
+# from aiogram.fsm.context import FSMContext
+# from aiogram.filters import Command
+# from aiogram.fsm.state import StatesGroup, State
 
 from Schemes.Player import PlayerSheet
 from Tools.MySqlTools import Connection
@@ -14,6 +14,8 @@ from Tools.BotTools import Tools
 
 import Forms.register_login.login as login_step
 import Forms.register_login.register as reg_step
+
+import Forms.characters.create_new_character as new_char
 
 BotTools = Tools()
 env = CatalogJson(name='file/json/environment.json')
@@ -28,10 +30,15 @@ con = Connection(host=env.read_json_data('DB_host'),
                  password=env.read_json_data('DB_password'))
 
 
-@dp.message(Command('start'))
+@dp.message(comands=['start'])
 async def cmd_start(message: types.Message):
     if con.work_with_MySQL(f'SELECT id FROM users WHERE user_id = {message.from_user.id}'):
-        await message.answer('hi')
+        del_keyboard = types.ReplyKeyboardRemove()
+        await message.answer('Добро пожаловать в D&D бота!', reply_markup=del_keyboard)
+        await message.answer('Пожалуйста, выберите интерисующий вас пункт',
+                             reply_markup=BotTools.construction_inline_keyboard(
+                                 buttons=['Персонажи', 'Компании'],
+                                 call_back=['Character', 'Story']))
     else:
         await message.answer('Зарегистрируйтесь или авторизуйтесь',
                              reply_markup=BotTools.construction_keyboard(
@@ -39,14 +46,16 @@ async def cmd_start(message: types.Message):
                                  call_back=['Reg', 'Log']))
 
 
-dp.message.register(login_step.input_login, (F.text == 'Авторизация') | (F.text == 'Попробовать сново'))
+# dp.message.register(login_step.input_login, (F.text == 'Авторизация') | (F.text == 'Попробовать сново'))
 dp.message.register(login_step.input_password, login_step.states_reg_log.StepsLogin.NAME)
 dp.message.register(login_step.check_data, login_step.states_reg_log.StepsLogin.PASSWORD)
 
-dp.message.register(reg_step.input_login, F.text == 'Регистрация')
+# dp.message.register(reg_step.input_login, F.text == 'Регистрация')
 dp.message.register(reg_step.input_password, reg_step.states_reg_log.StepsReg.NAME)
 dp.message.register(reg_step.input_repeat_password, reg_step.states_reg_log.StepsReg.PASSWORD)
 dp.message.register(reg_step.check_data, reg_step.states_reg_log.StepsReg.REPEAT_PASSWORD)
+
+dp.callback_query.register(new_char.menu_create, F.data('Character'))
 
 
 # Запуск процесса поллинга новых апдейтов
