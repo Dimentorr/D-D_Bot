@@ -1,7 +1,7 @@
 .env
 .idea/
 environment.json
-tmp_files/for_test.py
+for_test.py
 tmp_files/test.py
 data.json
 tmp_files/

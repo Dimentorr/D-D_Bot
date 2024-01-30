@@ -1,6 +1,8 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, executor, Dispatcher, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.utils.callback_data import CallbackData
 
 # from aiogram import F
 # from aiogram.fsm.context import FSMContext
@@ -25,7 +27,7 @@ con = Connection(host=env.read_json_data('DB_host'),
 
 
 async def menu_create(call: types.CallbackQuery, bot: Bot, call_back_data: dict):
-    await call.message.answer(f'{call_back_data.get('')}')
+    await call.message.answer(f'{call_back_data.get("teg_steps")}')
     # await call.message.answer('Выберите желаемый вариант',
     #                          reply_markup=BotTools.construction_inline_keyboard(
     #                              buttons=['Создать нового', 'Список существующих'],

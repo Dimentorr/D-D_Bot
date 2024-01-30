@@ -2,10 +2,7 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
 
-from aiogram import F
-from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.dispatcher import FSMContext
 
 from Schemes.Player import PlayerSheet
 from Tools.MySqlTools import Connection
@@ -29,7 +26,7 @@ async def input_login(message: types.Message, state: FSMContext, bot: Bot):
     # query_log = f'SELECT is_login FROM users WHERE user_id = {message.from_user.id}'
     # if con.work_with_MySQL(query_log):
     await message.answer('Введите логин:',
-                         reply_markup=BotTools.construction_keyboard(
+                         reply_markup=BotTools.construction_inline_keyboard(
                              buttons=['Назад'],
                              call_back=['Back']))
     await state.set_state(states_reg_log.StepsLogin.NAME)
@@ -38,7 +35,7 @@ async def input_login(message: types.Message, state: FSMContext, bot: Bot):
 async def input_password(message: types.Message, state: FSMContext, bot: Bot):
     data['name'] = message.text
     await message.answer('Введите пароль:',
-                         reply_markup=BotTools.construction_keyboard(
+                         reply_markup=BotTools.construction_inline_keyboard(
                              buttons=['Назад'],
                              call_back=['Back']))
     await state.set_state(states_reg_log.StepsLogin.PASSWORD)
@@ -62,6 +59,6 @@ async def check_data(message: types.Message, state: FSMContext, bot: Bot):
     else:
         await message.answer('Неверный логин или пароль!'
                              'Пожалуйста попробуйте сново',
-                             reply_markup=BotTools.construction_keyboard(
+                             reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['Попробовать сново', 'Регистрация'],
-                                 call_back=['NewTry', 'Reg']))
+                                 call_back=['Login', 'Registration']))
