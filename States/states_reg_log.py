@@ -1,12 +1,12 @@
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
 class StepsLogin(StatesGroup):
-    NAME = State()
-    PASSWORD = State()
+    name = State()
+    password = State()
 
 
-class StepsReg(StepsLogin):
-    NAME = State()
-    PASSWORD = State()
-    REPEAT_PASSWORD = State()
+class StepsReg(StatesGroup):
+    name = State()
+    password = State()
+    repeat_password = State()
