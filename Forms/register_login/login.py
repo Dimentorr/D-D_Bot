@@ -22,7 +22,7 @@ async def input_login(call: types.CallbackQuery):
     await call.message.answer('Введите логин:',
                               reply_markup=BotTools.construction_inline_keyboard(
                                   buttons=['Назад'],
-                                  call_back=['Back'],
+                                  call_back=['start'],
                                   message=call.message))
 
 
@@ -33,7 +33,7 @@ async def input_password(message: types.Message, state: FSMContext):
     await message.answer('Введите пароль:',
                          reply_markup=BotTools.construction_inline_keyboard(
                              buttons=['Назад'],
-                             call_back=['Back'],
+                             call_back=['start'],
                              message=message))
 
 

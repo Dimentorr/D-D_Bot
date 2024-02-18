@@ -15,7 +15,7 @@ class Tools:
             if type(buttons[i]) == list:
                 for j in range(len(buttons[i])):
                     try:
-                        print(buttons[i][j])
+                        # print(buttons[i][j])
                         kb[i].append(types.InlineKeyboardButton(buttons[i][j],
                                                                 callback_data=
                                                                 f'{call_back[i][j]}'))

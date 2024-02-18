@@ -26,7 +26,7 @@ con = Connection(host=env.read_json_data('DB_host'),
                  password=env.read_json_data('DB_password'))
 
 
-async def menu_create(call: types.CallbackQuery, bot: Bot, call_back_data: dict):
+async def menu_create(call: types.CallbackQuery, call_back_data: dict):
     await call.message.answer(f'{call_back_data.get("teg_steps")}')
     # await call.message.answer('Выберите желаемый вариант',
     #                          reply_markup=BotTools.construction_inline_keyboard(
@@ -34,3 +34,4 @@ async def menu_create(call: types.CallbackQuery, bot: Bot, call_back_data: dict)
     #                              call_back=['Character', 'Story'])
     #                          )
     await call.answer()
+    await call.message.delete()

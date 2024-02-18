@@ -29,5 +29,7 @@ class Connection:
                     connection.commit()
                     return result
         except mysql.connector.Error as e:
-            print('MySQL Tools, err:', e)
+            err_text = f'MySQL Tools, err: {e}'
+            print(err_text)
+            connection.rollback()
             return 0
