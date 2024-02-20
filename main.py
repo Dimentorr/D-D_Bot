@@ -37,14 +37,6 @@ BotTools = Tools()
 env = CatalogJson(name='file/json/environment.json')
 bot = Bot(token=env.read_json_data('TOKEN'))
 dp = Dispatcher(bot, storage=MemoryStorage())
-# APP = Client("create",
-#              api_id=28787989,
-#              api_hash="4e8a35b72b5a188077e3f3d1145b331c")
-
-
-def create_group(app, name_group):
-    ids = [1338857490, 871814445]  # Айди пользователей, которые будут добавлены
-    app.createChat(ids, name_group)
 
 
 con = Connection(host=env.read_json_data('DB_host'),
@@ -154,4 +146,3 @@ if __name__ == "__main__":
     game_story.create_table()
 
     executor.start_polling(dp, skip_updates=True)
-    # app.run()

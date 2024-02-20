@@ -6,6 +6,8 @@ tmp_files/test.py
 data.json
 tmp_files/
 file/
+my_account.session
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
