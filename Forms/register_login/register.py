@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher, types
+from aiogram import types
 
 from aiogram.dispatcher import FSMContext
 
@@ -55,7 +55,6 @@ async def input_repeat_password(message: types.Message, state: FSMContext):
 
 
 async def check_data(message: types.Message, state: FSMContext):
-    check_data_list = dict
     async with state.proxy() as data:
         data['repeat_password'] = message.text
 
@@ -72,10 +71,9 @@ async def check_data(message: types.Message, state: FSMContext):
         password = data['password']
         try:
             con.work_with_MySQL(f'INSERT INTO users(user_id, name_user, password, is_login)'
-                                f' VALUES({message.from_user.id}, "{name}", "{password}", 1)')
-            del_keyboard = types.ReplyKeyboardRemove()
-            await message.answer('Добро пожаловать в D&D бота!', reply_markup=del_keyboard)
-            await message.answer('Пожалуйста, выберите интерисующий вас пункт',
+                                f' VALUES("{message.from_user.id}", "{name}", "{password}", 1)')
+            await message.answer(f'Добро пожаловать в D&D бота!\n'
+                                 f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(
                                      buttons=['Персонажи', 'Компании'],
                                      call_back=['Character', 'Story'],
@@ -85,6 +83,11 @@ async def check_data(message: types.Message, state: FSMContext):
             await message.answer(f'''Произошла ошибка:
 {err}
 
-Сообщите об этом администратору и попробуйте повторить попытку позже''')
+Сообщите об этом администратору и попробуйте повторить попытку позже''',
+                                 reply_markup=BotTools.construction_inline_keyboard(
+                                     buttons=['В начало'],
+                                     call_back=['start'],
+                                     message=message)
+                                 )
         await state.finish()
 

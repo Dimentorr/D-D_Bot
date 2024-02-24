@@ -1,8 +1,3 @@
-import asyncio
-import logging
-
-# from pyrogram import Client, filters
-#
 from Schemes.Player import PlayerSheet
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
@@ -10,9 +5,9 @@ from Tools.BotTools import Tools
 
 import Forms.register_login.login as login_step
 import Forms.register_login.register as reg_step
-from Forms.game_room import main_menu, connect_from
+from Forms.game_room import main_menu, connect_from, create_new
 
-from States import states_reg_log, states_connect_to
+from States import states_reg_log, states_connect_to, states_create_group
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message, CallbackQuery
@@ -28,7 +23,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from SQL import users, characters_list, game_story
 
-import aiohttp
+from asyncio import new_event_loop, set_event_loop
+set_event_loop(new_event_loop())
 
 
 cd_list = CallbackData('teg_step')
@@ -81,38 +77,6 @@ async def start_bot(message: Message, state: FSMContext):
                                  buttons=['Регистрация'],
                                  call_back=['Registration'],
                                  message=message))
-        # await message.answer('Зарегистрируйтесь или авторизуйтесь',
-        #                      reply_markup=BotTools.construction_inline_keyboard(
-        #                          buttons=['Регистрация', 'Авторизация'],
-        #                          call_back=['Registration', 'Login'],
-        #                          message=message))
-    # print(1)
-    # create_group(app=APP, name_group='Test')
-    # print(1)
-
-# ID вашего аккаунта в телеграмме (можно получить через @userinfobot)
-
-
-# Создание функции для создания канала
-async def create_channel(chat_title):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(f'https://api.telegram.org/bot{env.read_json_data("TOKEN")}/createChannel',
-                                data={'title': chat_title}) as response:
-            result = await response.json()
-            return result.get('result')
-
-
-# Обработчик команды /create_channel
-@dp.message_handler(commands=['create_channel'])
-async def create_channel_command(message: types.Message):
-    chat_title = 'Test_Create'
-    channel_info = await create_channel(chat_title)
-    print(channel_info)
-    if channel_info:
-        await message.answer(f'Канал "{chat_title}" успешно создан!')
-        print(channel_info)
-    else:
-        await message.answer('Произошла ошибка при создании канала. Пожалуйста, попробуйте позже.')
 
 
 @dp.message_handler(commands=['id'])
@@ -126,10 +90,12 @@ dp.register_message_handler(reg_step.input_password, state=states_reg_log.StepsR
 dp.register_message_handler(reg_step.input_repeat_password, state=states_reg_log.StepsReg.password)
 dp.register_message_handler(reg_step.check_data, state=states_reg_log.StepsReg.repeat_password)
 
+
 dp.register_callback_query_handler(login_step.input_login,
                                    (lambda c: c.data == 'Login'), state='*')
 dp.register_message_handler(login_step.input_password, state=states_reg_log.StepsLogin.name)
 dp.register_message_handler(login_step.check_data, state=states_reg_log.StepsLogin.password)
+
 
 dp.register_callback_query_handler(main_menu.first_menu_game_function,
                                    lambda c: c.data == 'Story', state='*')
@@ -139,6 +105,12 @@ dp.register_callback_query_handler(connect_from.linc_group_id,
 dp.register_message_handler(connect_from.linc_group_password, state=states_connect_to.StepsConnectTo.id)
 dp.register_message_handler(connect_from.linc_group_check, state=states_connect_to.StepsConnectTo.password)
 
+
+dp.register_callback_query_handler(create_new.create_group_name,
+                                   lambda c: c.data == 'create_new_game', state='*')
+dp.register_message_handler(create_new.create_group_password, state=states_create_group.StepsCreate.name_group)
+dp.register_message_handler(create_new.create_group_repeat_password, state=states_create_group.StepsCreate.password)
+dp.register_message_handler(create_new.create_group_check, state=states_create_group.StepsCreate.repeat_password)
 
 if __name__ == "__main__":
     users.create_table()

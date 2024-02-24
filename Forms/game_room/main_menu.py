@@ -1,17 +1,6 @@
-import asyncio
-import logging
-from aiogram import Bot, Dispatcher, types
+from aiogram import types
 
-# from aiogram import F
-# from aiogram.fsm.context import FSMContext
-# from aiogram.filters import Command
-# from aiogram.fsm.state import StatesGroup, State
-
-from Schemes.Player import PlayerSheet
-from Tools.MySqlTools import Connection
-from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
-from States import states_reg_log
 
 BotTools = Tools()
 

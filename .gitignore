@@ -7,6 +7,7 @@ data.json
 tmp_files/
 file/
 my_account.session
+bot_session.session
 
 
 # Byte-compiled / optimized / DLL files

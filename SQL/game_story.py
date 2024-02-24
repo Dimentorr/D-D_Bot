@@ -17,6 +17,7 @@ def create_table():
                              f'id int not null primary key auto_increment,'
                              f'GM_id int not null,'
                              f'name_story varchar(255) not null,'
+                             f'password varchar(255) not null,'
                              f'id_group varchar(255) not null'
                              f')')
             query_player_story = (f'CREATE TABLE IF NOT EXISTS players_stories('

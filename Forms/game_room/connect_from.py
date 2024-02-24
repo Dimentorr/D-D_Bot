@@ -1,15 +1,7 @@
-import asyncio
-import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from datetime import datetime, timedelta
 
-# from aiogram import F
-# from aiogram.fsm.context import FSMContext
-# from aiogram.filters import Command
-# from aiogram.fsm.state import StatesGroup, State
-
-from Schemes.Player import PlayerSheet
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
@@ -56,29 +48,32 @@ async def linc_group_check(message: types.Message, state: FSMContext):
         data['password'] = message.text
     group = data['group_id']
     password = data['password']
-    # check_params_group = con.work_with_MySQL(f'SELECT id FROM game_stories '
-    #                        f'WHERE id_group = {group} AND '
-    #                        f'password = {password}')
+
     try:
         check_GM = con.work_with_MySQL(f'SELECT user_id FROM users '
                                        f'WHERE id = (SELECT GM_id FROM game_stories '
                                        f'WHERE id = (SELECT id FROM game_stories '
-                                       f'WHERE id_group = {group} AND '
-                                       f'password = {password})'
+                                       f'WHERE id_group = "{group}" AND '
+                                       f'password = "{password}")'
                                        f')')[0][0]
     except IndexError:
         check_GM = -1
+
     try:
         check_user = con.work_with_MySQL(f'SELECT user_id FROM users '
                                          f'WHERE id = (SELECT player_id FROM players_stories '
                                          f'WHERE id = (SELECT id FROM game_stories '
-                                         f'WHERE id_group = {group} AND '
-                                         f'password = {password})'
+                                         f'WHERE id_group = "{group}" AND '
+                                         f'password = "{password}")'
                                          f')')[0][0]
     except IndexError:
         check_user = -1
-    if (message.from_user.id != check_GM) and (message.from_user.id != check_user):
+
+    is_group = con.work_with_MySQL(f'SELECT id FROM game_stories WHERE id_group="{group}" AND password="{password}"')
+
+    if (message.from_user.id != int(check_GM)) and (message.from_user.id != int(check_user)) and is_group:
         expire_date = datetime.now() + timedelta(days=1)
+        await message.answer('Создание ссылки...')
         link = await bot.create_chat_invite_link(group, expire_date.timestamp, 1)
 
         await message.answer(f'Приятной игры!\n'
@@ -88,7 +83,12 @@ async def linc_group_check(message: types.Message, state: FSMContext):
                                  call_back=['start'],
                                  message=message)
                              )
-    elif (message.from_user.id == check_GM) or (message.from_user.id == check_user):
+        con.work_with_MySQL(f'INSERT INTO players_stories (player_id, story_id) '
+                                  f'VALUES ('
+                                  f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
+                                  f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
+                                  f')')
+    elif (message.from_user.id == int(check_GM)) or (message.from_user.id == int(check_user)):
         await message.answer('Вы уже являетесь участником этой компании!',
                              reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['На главную'],

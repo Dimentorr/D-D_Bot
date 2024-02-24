@@ -15,12 +15,8 @@ def create_table():
         ) as connection:
             query = (f'CREATE TABLE IF NOT EXISTS users('
                      f'id int not null primary key auto_increment,'
-                     f'user_id int not null,'
+                     f'user_id varchar(255) not null,'
                      f'name_user varchar(255) not null,'
-                     f'characters_id varchar(255),'
-                     f'now_location varchar(255) not null default("start"),'
-                     f'last_location varchar(255) not null default("start"),'
-                     f'premium int not null default(0),'
                      f'password varchar(255) not null,'
                      f'is_login int not null default(1)'
                      f')')
