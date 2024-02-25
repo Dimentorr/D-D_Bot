@@ -10,7 +10,7 @@ api_hash = env.read_json_data('api_hash_pyrogram')
 
 
 def set_privileges(invite=False):
-    return pyrogram.types.ChatPrivileges(can_manage_chat=True,
+    return pyrogram.types.ChatPrivileges(can_manage_chat=invite,
                                          can_delete_messages=True,
                                          can_manage_video_chats=True,
                                          can_restrict_members=True,
@@ -22,7 +22,7 @@ def set_privileges(invite=False):
                                          can_pin_messages=True)
 
 
-async def supergroup_create(title: str, bot_name: str, user_name: str):
+async def supergroup_create(title: str, bot_name: str, user_name: str, admin_gm=True):
     app = Client("my_account", api_id, api_hash)
     await app.start()
     result = await app.create_supergroup(title)
@@ -31,5 +31,8 @@ async def supergroup_create(title: str, bot_name: str, user_name: str):
     await app.add_chat_members(chat_id, f'@{user_name}')
     await app.promote_chat_member(chat_id, bot_name, privileges=set_privileges(invite=True))
     await app.promote_chat_member(chat_id, f'@{user_name}', privileges=set_privileges())
+    if not admin_gm:
+        await app.leave_chat(chat_id, delete=True)
     await app.stop()
     return chat_id
+

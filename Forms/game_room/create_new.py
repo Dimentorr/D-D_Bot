@@ -76,7 +76,9 @@ async def create_group_check(message: types.Message, state: FSMContext):
         username = message.from_user.username
         await message.answer('Подождите, группа создаётся...')
         try:
-            id_group = await pyro.supergroup_create(title=name, bot_name=bot_name, user_name=f'@{username}')
+            admin_is_gm = (f'@{username}' == env.read_json_data("ADMIN_USERNAME"))
+            id_group = await pyro.supergroup_create(title=name, bot_name=bot_name,
+                                                    user_name=f'@{username}', admin_gm=admin_is_gm)
             con.work_with_MySQL(f'INSERT INTO game_stories (GM_id, name_story, id_group, password) '
                                 f'VALUES ('
                                 f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
