@@ -9,8 +9,7 @@ class Tools:
         pass
 
     def construction_inline_keyboard(self, buttons: list, call_back: list, message: types.Message):
-        kb = [[], [], [], [], [], [], []]
-        cd_list = CallbackData('teg_steps', 'user_id')
+        kb = [[], [], [], [], [], [], [], [], []]
         for i in range(len(buttons)):
             if type(buttons[i]) == list:
                 for j in range(len(buttons[i])):

@@ -26,12 +26,24 @@ con = Connection(host=env.read_json_data('DB_host'),
                  password=env.read_json_data('DB_password'))
 
 
-async def menu_create(call: types.CallbackQuery, call_back_data: dict):
-    await call.message.answer(f'{call_back_data.get("teg_steps")}')
-    # await call.message.answer('Выберите желаемый вариант',
-    #                          reply_markup=BotTools.construction_inline_keyboard(
-    #                              buttons=['Создать нового', 'Список существующих'],
-    #                              call_back=['Character', 'Story'])
-    #                          )
-    await call.answer()
+async def menu_create(call: types.CallbackQuery):
+    await call.message.answer(f'Создание персонажа:\n'
+                              f'(По умолчанию для имени игрока используется имя, которое вы указывали, при регистрации)',
+                              reply_markup=BotTools.construction_inline_keyboard(
+                                 buttons=[['Имя персонажа', 'Имя игрока', 'Класс'],
+                                          ['Предыстория', 'Раса', 'Мировозрение'],
+                                          ['Уровень', 'Атрибуты', 'Черты'],
+                                          ['Боевые характеристики', 'Кости HP'],
+                                          ['Умения и способности', 'Снаряжение'],
+                                          ['Прочие владения и языки', 'дохновение'],
+                                          ['На главную']],
+                                 call_back=[['name_char', 'name_player', 'Class'],
+                                          ['Предыстория', 'Раса', 'Мировозрение'],
+                                          ['Уровень', 'Атрибуты', 'Черты'],
+                                          ['Боевые характеристики', 'Кости HP'],
+                                          ['Умения и способности', 'Снаряжение'],
+                                          ['Прочие владения и языки', 'дохновение'],
+                                          ['start']],
+                                 message=call.message)
+                              )
     await call.message.delete()

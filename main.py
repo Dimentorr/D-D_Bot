@@ -6,6 +6,7 @@ from Tools.BotTools import Tools
 import Forms.register_login.login as login_step
 import Forms.register_login.register as reg_step
 from Forms.game_room import main_menu, connect_from, create_new
+from Forms.characters import menu_characters, create_new_character
 
 from States import states_reg_log, states_connect_to, states_create_group
 
@@ -14,8 +15,6 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils import executor
 
 from aiogram.dispatcher import FSMContext
-
-import Forms.characters.create_new_character as new_char
 
 from aiogram.utils.callback_data import CallbackData
 
@@ -111,6 +110,12 @@ dp.register_callback_query_handler(create_new.create_group_name,
 dp.register_message_handler(create_new.create_group_password, state=states_create_group.StepsCreate.name_group)
 dp.register_message_handler(create_new.create_group_repeat_password, state=states_create_group.StepsCreate.password)
 dp.register_message_handler(create_new.create_group_check, state=states_create_group.StepsCreate.repeat_password)
+
+
+dp.register_callback_query_handler(menu_characters.menu_characters,
+                                   lambda c: c.data == 'Character', state='*')
+dp.register_callback_query_handler(create_new_character.menu_create,
+                                   lambda c: c.data == 'new_character', state='*')
 
 if __name__ == "__main__":
     users.create_table()
