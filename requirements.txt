@@ -8,4 +8,4 @@ tgcrypto==1.2.5
 aiohttp~=3.8.6
 Pyrogram~=2.0.106
 python-telegram-bot==20.8
-google-api-python-client==2.120.0
+google-api-python-client==2.121.0

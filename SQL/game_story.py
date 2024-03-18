@@ -44,7 +44,7 @@ def create_table():
                 cursor.execute(query_player_players_story_foreign_key)
                 cursor.execute(query_story_players_story_foreign_key)
                 result = cursor.fetchall()
-                print('MySQL Tools, result:', result)
+                # print('MySQL Tools, result:', result)
                 connection.commit()
                 return result
     except mysql.connector.Error as e:
