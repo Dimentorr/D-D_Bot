@@ -80,9 +80,7 @@ async def start_bot(message: Message, state: FSMContext):
         query_log = (f'SELECT gmail FROM verify '
                      f'WHERE user_id = '
                      f'(SELECT id FROM users WHERE user_id = {message.from_user.id})')
-        print('hi')
         if not con.work_with_MySQL(query_log):
-            print('add')
             buts.append('Верификация')
             call_backs.append('verify')
         await message.answer(f'Добро пожаловать в D&D бота!\n'
