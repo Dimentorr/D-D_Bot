@@ -13,15 +13,18 @@ def create_table():
                 user=env.read_json_data('DB_user'),
                 password=env.read_json_data('DB_password')
         ) as connection:
-            query = (f'CREATE TABLE IF NOT EXISTS users('
-                     f'id int not null primary key auto_increment,'
-                     f'user_id varchar(255) not null,'
-                     f'name_user varchar(255) not null,'
-                     f'password varchar(255) not null,'
-                     f'is_login int not null default(1)'
-                     f')')
+            query_verify = (f'CREATE TABLE IF NOT EXISTS verify('
+                             f'id int not null primary key auto_increment,'
+                             f'gmail int not null,'
+                             f'user_id int not null'
+                             f')')
+            query_verify_foreign_key = (
+                f'ALTER TABLE verify'
+                f' ADD FOREIGN KEY (user_id) REFERENCES users(id)'
+                f' ON DELETE RESTRICT ON UPDATE RESTRICT;')
             with connection.cursor() as cursor:
-                cursor.execute(query)
+                cursor.execute(query_verify)
+                cursor.execute(query_verify_foreign_key)
                 result = cursor.fetchall()
                 # print('MySQL Tools, result:', result)
                 connection.commit()

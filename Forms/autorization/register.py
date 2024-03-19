@@ -75,8 +75,8 @@ async def check_data(message: types.Message, state: FSMContext):
             await message.answer(f'Добро пожаловать в D&D бота!\n'
                                  f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(
-                                     buttons=['Персонажи', 'Компании'],
-                                     call_back=['Character', 'Story'],
+                                     buttons=['Персонажи', 'Компании', 'Верификация'],
+                                     call_back=['Character', 'Story', 'verify'],
                                      message=message)
                                  )
         except Exception as err:
