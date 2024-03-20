@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher, types
+from aiogram import types
 
 from aiogram.dispatcher import FSMContext
 

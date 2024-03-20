@@ -1,4 +1,3 @@
-from Schemes.Player import PlayerSheet
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
@@ -12,7 +11,7 @@ from Forms.verefication import verification
 
 from States import states_reg_log, states_connect_to, states_create_group, states_create_character, states_verifiction
 
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils import executor
 
@@ -25,8 +24,9 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from SQL import users, characters_list, game_story, verify
 
 from asyncio import new_event_loop, set_event_loop
-set_event_loop(new_event_loop())
 
+
+set_event_loop(new_event_loop())
 
 cd_list = CallbackData('teg_step')
 
@@ -45,7 +45,7 @@ con = Connection(host=env.read_json_data('DB_host'),
 
 
 @dp.callback_query_handler(lambda c: c.data == 'start', state='*')
-async def start_bot(call: types.CallbackQuery, state: FSMContext):
+async def start_bot(call: CallbackQuery, state: FSMContext):
     await state.finish()
     if con.work_with_MySQL(f'SELECT id FROM users WHERE user_id = {call.from_user.id}'):
         buts = ['Персонажи', 'Компании']
@@ -151,7 +151,6 @@ dp.register_message_handler(menu_characters.create_sheet_character,
 # ----------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    # GoogleTools.gmail_send(to='your_mail@gmail.com', text_message='Test3')
     if int(env.read_json_data('create_table')):
         users.create_table()
         verify.create_table()

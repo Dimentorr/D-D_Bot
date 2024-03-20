@@ -14,10 +14,10 @@ def create_table():
                 password=env.read_json_data('DB_password')
         ) as connection:
             query_verify = (f'CREATE TABLE IF NOT EXISTS verify('
-                             f'id int not null primary key auto_increment,'
-                             f'gmail int not null,'
-                             f'user_id int not null'
-                             f')')
+                            f'id int not null primary key auto_increment,'
+                            f'gmail int not null,'
+                            f'user_id int not null'
+                            f')')
             query_verify_foreign_key = (
                 f'ALTER TABLE verify'
                 f' ADD FOREIGN KEY (user_id) REFERENCES users(id)'
@@ -26,7 +26,6 @@ def create_table():
                 cursor.execute(query_verify)
                 cursor.execute(query_verify_foreign_key)
                 result = cursor.fetchall()
-                # print('MySQL Tools, result:', result)
                 connection.commit()
                 return result
     except mysql.connector.Error as e:

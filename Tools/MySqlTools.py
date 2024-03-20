@@ -10,7 +10,6 @@ class Connection:
         self.user = user
         self.password = password
 
-
     def work_with_MySQL(self, query_text='Select * from users'):
         try:
             with mysql.connector.connect(
@@ -26,10 +25,6 @@ class Connection:
                 with connection.cursor() as cursor:
                     cursor.execute(query)
                     result = cursor.fetchall()
-                    # print(f'---------------------------------------\n'
-                    #       f'MySQL Tools, result: {result}\n'
-                    #       f'{query_text}\n'
-                    #       f'---------------------------------------')
                     connection.commit()
                     return result
         except mysql.connector.Error as e:

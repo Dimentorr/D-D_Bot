@@ -4,7 +4,6 @@ from email.mime.text import MIMEText
 
 from Tools.JsonTools import CatalogJson
 
-from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2 import service_account
@@ -85,13 +84,11 @@ class GoogleTools:
     def send_message(self, service, user_id, message):
         try:
             message = service.users().messages().send(userId=user_id, body=message).execute()
-            # print('Message Id: %s' % message['id'])
             return message
         except Exception as error:
             print('An error occurred: %s' % error)
 
     def gmail_send(self, to, text_message):
-        # creds = None
         if os.path.exists('file/json/token.json'):
             self.creds_gmail = Credentials.from_authorized_user_file('file/json/token.json')
         if not self.creds_gmail:

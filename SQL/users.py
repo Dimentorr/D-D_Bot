@@ -23,7 +23,6 @@ def create_table():
             with connection.cursor() as cursor:
                 cursor.execute(query)
                 result = cursor.fetchall()
-                # print('MySQL Tools, result:', result)
                 connection.commit()
                 return result
     except mysql.connector.Error as e:
