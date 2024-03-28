@@ -24,10 +24,8 @@ async def create_group_name(call: types.CallbackQuery):
     if get_username(call):
         await states_create_group.StepsCreate.name_group.set()
         await call.message.answer(f'Введите название компании',
-                                  reply_markup=BotTools.construction_inline_keyboard(
-                                      buttons=['На главную'],
-                                      call_back=['start'],
-                                      message=call.message)
+                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                     call_back=['start'])
                                   )
         await call.answer()
         await call.message.delete()
@@ -35,10 +33,10 @@ async def create_group_name(call: types.CallbackQuery):
         await call.message.answer(f'Перед этим вам необходимо задать в настройках ваше имя пользователя\n\n'
                                   f'Для этого вам необходимо пройти следующий путь:\n'
                                   f'Настройки->Аккаунт->Имя пользователя',
-                                  reply_markup=BotTools.construction_inline_keyboard(
-                                      buttons=['На главную'],
-                                      call_back=['start'],
-                                      message=call.message))
+                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                     call_back=['start']))
+    await call.answer()
+    await call.message.delete()
 
 
 async def create_group_password(message: types.Message, state: FSMContext):
@@ -46,10 +44,7 @@ async def create_group_password(message: types.Message, state: FSMContext):
         data['name_group'] = message.text
     await states_create_group.StepsCreate.next()
     await message.answer(f'Введите пароль от комнаты\n',
-                         reply_markup=BotTools.construction_inline_keyboard(
-                             buttons=['На главную'],
-                             call_back=['start'],
-                             message=message)
+                         reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'], call_back=['start'])
                          )
 
 
@@ -58,10 +53,7 @@ async def create_group_repeat_password(message: types.Message, state: FSMContext
         data['password'] = message.text
     await states_create_group.StepsCreate.next()
     await message.answer(f'Повторите пароль от комнаты\n',
-                         reply_markup=BotTools.construction_inline_keyboard(
-                             buttons=['На главную'],
-                             call_back=['start'],
-                             message=message)
+                         reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'], call_back=['start'])
                          )
 
 
@@ -86,26 +78,20 @@ async def create_group_check(message: types.Message, state: FSMContext):
                                 f'"{id_group}",'
                                 f'"{password}")')
             await message.answer('Готово!',
-                                 reply_markup=BotTools.construction_inline_keyboard(
-                                     buttons=['На главную'],
-                                     call_back=['start'],
-                                     message=message))
+                                 reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                    call_back=['start']))
             await bot.send_message(id_group, f'ID компании: {id_group}\n'
                                              f'Пароль: {password}\n')
         except Exception as err:
             await message.answer(f'Произошла ошибка!\n'
                                  f'Ошибка - {err}\n\n'
                                  f'Пожалуйста сообщете об этом администратору',
-                                 reply_markup=BotTools.construction_inline_keyboard(
-                                    buttons=['На главную'],
-                                    call_back=['start'],
-                                    message=message))
+                                 reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                    call_back=['start']))
     else:
         await message.answer('Пароли не совпадают!',
-                             reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=[['Попробовать сново'],
-                                          ['На главную']],
-                                 call_back=[['create_new_game'],
-                                            ['start']],
-                                 message=message))
+                             reply_markup=BotTools.construction_inline_keyboard(buttons=[['Попробовать сново'],
+                                                                                         ['На главную']],
+                                                                                call_back=[['create_new_game'],
+                                                                                           ['start']]))
     await state.finish()

@@ -24,10 +24,10 @@ async def input_login(call: types.CallbackQuery):
     else:
         await states_reg_log.StepsReg.name.set()
         await call.message.answer('Введите логин:',
-                                  reply_markup=BotTools.construction_inline_keyboard(
-                                      buttons=['Назад'],
-                                      call_back=['Back'],
-                                      message=call.message))
+                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
+                                                                                     call_back=['Back']))
+    await call.answer()
+    await call.message.delete()
 
 
 async def input_password(message: types.Message, state: FSMContext):
@@ -36,10 +36,7 @@ async def input_password(message: types.Message, state: FSMContext):
 
     await states_reg_log.StepsReg.next()
     await message.answer('Введите пароль:',
-                         reply_markup=BotTools.construction_inline_keyboard(
-                             buttons=['Назад'],
-                             call_back=['Back'],
-                             message=message))
+                         reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['Back']))
 
 
 async def input_repeat_password(message: types.Message, state: FSMContext):
@@ -48,10 +45,7 @@ async def input_repeat_password(message: types.Message, state: FSMContext):
 
     await states_reg_log.StepsReg.next()
     await message.answer('Введите пароль повторно:',
-                         reply_markup=BotTools.construction_inline_keyboard(
-                             buttons=['Назад'],
-                             call_back=['Back'],
-                             message=message))
+                         reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['Back']))
 
 
 async def check_data(message: types.Message, state: FSMContext):
@@ -62,10 +56,7 @@ async def check_data(message: types.Message, state: FSMContext):
         await message.answer('Пароли не совпадают! Повторите изначальный пароль.')
         await states_reg_log.StepsReg.password.set()
         await message.answer('Введите пароль:',
-                             reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=['Назад'],
-                                 call_back=['Back'],
-                                 message=message))
+                             reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['Back']))
     else:
         name = data['name']
         password = data['password']
@@ -76,18 +67,15 @@ async def check_data(message: types.Message, state: FSMContext):
                                  f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(
                                      buttons=['Персонажи', 'Компании', 'Верификация'],
-                                     call_back=['Character', 'Story', 'verify'],
-                                     message=message)
+                                     call_back=['Character', 'Story', 'verify'])
                                  )
         except Exception as err:
             await message.answer(f'''Произошла ошибка:
 {err}
 
 Сообщите об этом администратору и попробуйте повторить попытку позже''',
-                                 reply_markup=BotTools.construction_inline_keyboard(
-                                     buttons=['В начало'],
-                                     call_back=['start'],
-                                     message=message)
+                                 reply_markup=BotTools.construction_inline_keyboard(buttons=['В начало'],
+                                                                                    call_back=['start'])
                                  )
         await state.finish()
 

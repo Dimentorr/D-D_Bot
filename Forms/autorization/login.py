@@ -18,12 +18,11 @@ con = Connection(host=env.read_json_data('DB_host'),
 
 
 async def input_login(call: types.CallbackQuery):
+    await call.message.delete()
     await states_reg_log.StepsLogin.name.set()
     await call.message.answer('Введите логин:',
-                              reply_markup=BotTools.construction_inline_keyboard(
-                                  buttons=['Назад'],
-                                  call_back=['start'],
-                                  message=call.message))
+                              reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
+                                                                                 call_back=['start']))
 
 
 async def input_password(message: types.Message, state: FSMContext):
@@ -31,10 +30,7 @@ async def input_password(message: types.Message, state: FSMContext):
         data['name'] = message.text
     await states_reg_log.StepsLogin.next()
     await message.answer('Введите пароль:',
-                         reply_markup=BotTools.construction_inline_keyboard(
-                             buttons=['Назад'],
-                             call_back=['start'],
-                             message=message))
+                         reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['start']))
 
 
 async def check_data(message: types.Message, state: FSMContext):
@@ -48,14 +44,11 @@ async def check_data(message: types.Message, state: FSMContext):
         await message.answer('Пожалуйста, выберите интерисующий вас пункт',
                              reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['Персонажи', 'Компании', 'Верификация'],
-                                 call_back=['Character', 'Story', 'verify'],
-                                 message=message))
+                                 call_back=['Character', 'Story', 'verify']))
         con.work_with_MySQL(f'UPDATE users SET is_login = 1 WHERE name_user = "{name}" AND password = "{password}"')
     else:
         await message.answer('Неверный логин или пароль!'
                              'Пожалуйста попробуйте сново',
                              reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=['Попробовать сново', 'Регистрация'],
-                                 call_back=['Login', 'Registration'],
-                                 message=message))
+                                 buttons=['Попробовать сново', 'Регистрация'], call_back=['Login', 'Registration']))
     await state.finish()

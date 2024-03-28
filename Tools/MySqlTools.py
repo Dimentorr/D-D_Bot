@@ -25,7 +25,11 @@ class Connection:
                 with connection.cursor() as cursor:
                     cursor.execute(query)
                     result = cursor.fetchall()
-                    connection.commit()
+                    try:
+                        connection.commit()
+                    except Exception as err:
+                        print(f'Невозможно сохранить изменения')
+                        print(f'Ошибка - {err}')
                     return result
         except mysql.connector.Error as e:
             err_text = f'(ERROR)MySQL Tools: {e}'

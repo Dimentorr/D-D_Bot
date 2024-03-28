@@ -20,10 +20,8 @@ async def linc_group_id(call: types.CallbackQuery):
     await states_connect_to.StepsConnectTo.id.set()
     await call.message.answer(f'Введите id компании\n'
                               f'(попросите вашего Мастера сообщить его вам, если этого не произошло ранее)',
-                              reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=['На главную'],
-                                 call_back=['start'],
-                                 message=call.message)
+                              reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                 call_back=['start'])
                               )
     await call.answer()
     await call.message.delete()
@@ -35,10 +33,7 @@ async def linc_group_password(message: types.Message, state: FSMContext):
     await states_connect_to.StepsConnectTo.next()
     await message.answer(f'Введите пароль от комнаты\n'
                          f'(попросите вашего Мастера сообщить его вам, если этого не произошло ранее)',
-                         reply_markup=BotTools.construction_inline_keyboard(
-                             buttons=['На главную'],
-                             call_back=['start'],
-                             message=message)
+                         reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'], call_back=['start'])
                          )
 
 
@@ -78,10 +73,8 @@ async def linc_group_check(message: types.Message, state: FSMContext):
 
         await message.answer(f'Приятной игры!\n'
                              f'Ваша ссылка для подключения к группе - {link.invite_link}',
-                             reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=['На главную'],
-                                 call_back=['start'],
-                                 message=message)
+                             reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                call_back=['start'])
                              )
         con.work_with_MySQL(f'INSERT INTO players_stories (player_id, story_id) '
                                   f'VALUES ('
@@ -90,16 +83,12 @@ async def linc_group_check(message: types.Message, state: FSMContext):
                                   f')')
     elif (message.from_user.id == int(check_GM)) or (message.from_user.id == int(check_user)):
         await message.answer('Вы уже являетесь участником этой компании!',
-                             reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=['На главную'],
-                                 call_back=['start'],
-                                 message=message))
+                             reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                call_back=['start']))
     else:
         await message.answer('Неверный id или пароль группы!',
-                             reply_markup=BotTools.construction_inline_keyboard(
-                                 buttons=[['Попробовать сново'],
-                                          ['На главную']],
-                                 call_back=[['connect_to'],
-                                            ['start']],
-                                 message=message))
+                             reply_markup=BotTools.construction_inline_keyboard(buttons=[['Попробовать сново'],
+                                                                                         ['На главную']],
+                                                                                call_back=[['connect_to'],
+                                                                                           ['start']]))
     await state.finish()

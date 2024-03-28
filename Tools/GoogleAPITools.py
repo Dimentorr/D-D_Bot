@@ -22,12 +22,13 @@ class GoogleTools:
                        'https://www.googleapis.com/auth/documents',
                        'https://www.googleapis.com/auth/drive.file']
         self.SERVICE_ACCOUNT_FILE = 'file/json/credential.json'
+        self.CRED_SERVICE = service_account.Credentials.from_service_account_file(
+            self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
         self.creds_gmail = None
         self.creds_drive = None
 
     def create_remote_folder(self, folder_name, parent_id=None):
-        credentials = service_account.Credentials.from_service_account_file(
-            self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
+        credentials = self.CRED_SERVICE
         service = build('drive', 'v3', credentials=credentials)
         body = {
             'name': folder_name,
@@ -39,39 +40,57 @@ class GoogleTools:
         return root_folder['id']
 
     def get_info(self):
-        credentials = service_account.Credentials.from_service_account_file(
-            self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
-        service = build('drive', 'v3', credentials=credentials)
-        return service.files().list(pageSize=10,
+        credentials = self.CRED_SERVICE
+        if not self.creds_drive:
+            self.creds_drive = build('drive', 'v3', credentials=credentials)
+        return self.creds_drive.files().list(pageSize=10,
                                     fields="nextPageToken, files(id, name, mimeType, webViewLink)").execute()
 
     def share_file(self, service_drive, file_id, email, role):
-        # roles: editor
-        #        writer
         new_permissions = {
             'type': 'group',
             'role': role,
             'emailAddress': email
         }
+        try:
+            permission_response = service_drive.permissions().create(
+                fileId=file_id,
+                body=new_permissions,
+                sendNotificationEmail=False
+            ).execute()
+        except Exception as err:
+            print(f'Error on share_file: {err}')
 
-        permission_response = service_drive.permissions().create(
-            fileId=file_id,
-            body=new_permissions,
-            sendNotificationEmail=False
-        ).execute()
+    def get_permissions(self, file_id, email):
+        credentials = self.CRED_SERVICE
+        if not self.creds_drive:
+            self.creds_drive = build('drive', 'v3', credentials=credentials)
+        new_permissions = {
+            'type': 'group',
+            'role': 'reader',
+            'emailAddress': email
+        }
+        try:
+            permission_response = self.creds_drive.permissions().create(
+                fileId=file_id,
+                body=new_permissions,
+                sendNotificationEmail=False
+            ).execute()
+        except Exception as err:
+            print(f'Error on share_file: {err}')
 
-    def create_item(self, item_name, mail, role):
-        credentials = service_account.Credentials.from_service_account_file(
-            self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
-        service_drive = build('drive', 'v3', credentials=credentials)
+    def create_item(self, item_name, mail, role='writer'):
+        credentials = self.CRED_SERVICE
+        if not self.creds_drive:
+            self.creds_drive = build('drive', 'v3', credentials=credentials)
         body = {
             'name': item_name,
             'mimeType': 'application/vnd.google-apps.document',
             'parents': '1GyWxpOJDA-i8M64ihoV90LVPn2kNc4YC'
         }
-        file = service_drive.files().create(body=body,
+        file = self.creds_drive.files().create(body=body,
                                             fields="id, name, mimeType, webViewLink").execute()
-        self.share_file(service_drive, file['id'], email=mail, role=role)
+        self.share_file(self.creds_drive, file['id'], email=mail, role=role)
         return file
 
     def create_message(self, autor, to, subject, message_text):
