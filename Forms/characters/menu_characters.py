@@ -1,16 +1,11 @@
-import asyncio
-import logging
-from aiogram import Bot, executor, Dispatcher, types
+from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.utils.callback_data import CallbackData
 
-from Tools.MySqlTools import Connection
-from Tools.JsonTools import CatalogJson
+from States import states_create_character
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
-from States import states_create_character
-
+from Tools.JsonTools import CatalogJson
+from Tools.MySqlTools import Connection
 
 GoogleTools = GoogleTools()
 BotTools = Tools()

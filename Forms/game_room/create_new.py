@@ -81,7 +81,8 @@ async def create_group_check(message: types.Message, state: FSMContext):
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
                                                                                     call_back=['start']))
             await bot.send_message(id_group, f'ID компании: {id_group}\n'
-                                             f'Пароль: {password}\n')
+                                             f'Пароль: {password}\n'
+                                             f'Для вызова меню напишите команду: !menu')
         except Exception as err:
             await message.answer(f'Произошла ошибка!\n'
                                  f'Ошибка - {err}\n\n'

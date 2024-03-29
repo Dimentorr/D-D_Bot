@@ -1,10 +1,9 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
-from Tools.MySqlTools import Connection
-from Tools.JsonTools import CatalogJson
+
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
-from States import states_choice_character
+from Tools.JsonTools import CatalogJson
+from Tools.MySqlTools import Connection
 
 GoogleTools = GoogleTools()
 BotTools = Tools()
@@ -25,6 +24,7 @@ async def group_menu_call(call: types.CallbackQuery):
                                    name_buttons=[['Список персонажей'], ['Получить права просмотра']],
                                    cd=[['list_characters'], ['get_permissions']]
                                ))
+        await call.message.delete()
 
 
 async def group_menu_mess(message: types.Message):
@@ -61,6 +61,7 @@ async def start_get_permissions(call: types.CallbackQuery):
                                    name_buttons=['Назад'],
                                    cd=['menu']
                                ))
+        await call.message.delete()
         return 0
     ids_users = [i[0] for i in con.work_with_MySQL(f'SELECT player_id FROM players_stories WHERE story_id={group_id};')]
     if len(ids_users) == 0:
@@ -70,6 +71,7 @@ async def start_get_permissions(call: types.CallbackQuery):
                                    name_buttons=['Назад'],
                                    cd=['menu']
                                ))
+        await call.message.delete()
         return 0
 
     query_create_temp = (f'CREATE TABLE user_character_id AS '
@@ -117,6 +119,7 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
                                    name_buttons=['Назад'],
                                    cd=['menu']
                                ))
+        await call.message.delete()
         return 0
     else:
         if int(call.data.split(":")[1]) > 0:
@@ -141,6 +144,7 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
                                    reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
                                        name_buttons=['Назад'],
                                        cd=['menu']))
+        await call.message.delete()
 
 
 async def find_list(group_id: str):
@@ -168,6 +172,7 @@ async def supergroup_check_list_characters(call: types.CallbackQuery):
                                    name_buttons=['Назад'],
                                    cd=['menu']
                                ))
+        await call.message.delete()
         return 0
     ids_users = [i[0] for i in con.work_with_MySQL(f'SELECT player_id FROM players_stories WHERE story_id={group_id};')]
     if len(ids_users) == 0:
@@ -177,6 +182,7 @@ async def supergroup_check_list_characters(call: types.CallbackQuery):
                                    name_buttons=['Назад'],
                                    cd=['menu']
                                ))
+        await call.message.delete()
         return 0
 
     list_characters = await find_list(group_id)
@@ -199,3 +205,4 @@ async def supergroup_check_list_characters(call: types.CallbackQuery):
                                    name_buttons=['Назад'],
                                    cd=['menu']
                                ))
+    await call.message.delete()
