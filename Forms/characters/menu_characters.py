@@ -32,8 +32,8 @@ async def menu_characters(call: types.CallbackQuery):
 
 
 async def list_characters(call: types.CallbackQuery):
-    ids = con.work_with_MySQL(f'SELECT id FROM characters_list WHERE user_id='
-                              f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")')[0]
+    ids = con.work_with_MySQL([f'SELECT id FROM characters_list WHERE user_id='
+                              f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])[0]
     if len(ids) == 0:
         await call.message.answer(f'У вас ещё нет созданных персонажей!',
                                   reply_markup=BotTools.construction_inline_keyboard(
@@ -42,12 +42,12 @@ async def list_characters(call: types.CallbackQuery):
                                                                            ['start']])
                                   )
     else:
-        names = con.work_with_MySQL(f'SELECT name_character FROM characters_list '
+        names = con.work_with_MySQL([f'SELECT name_character FROM characters_list '
                                      f'WHERE user_id = '
-                                     f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")')
-        links = con.work_with_MySQL(f'SELECT link FROM characters_list '
+                                     f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")'])
+        links = con.work_with_MySQL([f'SELECT link FROM characters_list '
                                     f'WHERE user_id = '
-                                    f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")')
+                                    f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")'])
 
     await call.message.answer(f'Пожалуйста выберите интерисующий вас лист персонажа:',
                               reply_markup=BotTools.construction_inline_keyboard_with_link(
@@ -56,10 +56,10 @@ async def list_characters(call: types.CallbackQuery):
 
 
 def check_verify(user_id: str):
-    mail = con.work_with_MySQL(f'Select gmail FROM verify '
+    mail = con.work_with_MySQL([f'Select gmail FROM verify '
                                f'WHERE user_id = '
                                f'(Select id FROM users '
-                               f'WHERE user_id = {user_id})')
+                               f'WHERE user_id = {user_id})'])
     if mail:
         return mail[0][0]
     else:
@@ -102,9 +102,9 @@ async def create_sheet_character(message: types.Message, state: FSMContext):
                                     mail=f'{check_verify(message.from_user.id)}')
     web_link = sheet['webViewLink']
     sheet_id = sheet['id']
-    con.work_with_MySQL(f'INSERT INTO characters_list(user_id, name_character, link, file_id)'
+    con.work_with_MySQL([f'INSERT INTO characters_list(user_id, name_character, link, file_id)'
                         f' VALUES((SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-                        f' "{name_character}", "{web_link}", "{sheet_id}")')
+                        f' "{name_character}", "{web_link}", "{sheet_id}")'])
     await message.answer(f'Ваш документ создан!\n'
                          f'Ссылка на лист персонажа: {web_link}',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],

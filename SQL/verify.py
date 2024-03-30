@@ -19,9 +19,9 @@ def create_table():
                             f'user_id int not null'
                             f')')
             query_verify_foreign_key = (
-                f'ALTER TABLE verify'
-                f' ADD FOREIGN KEY (user_id) REFERENCES users(id)'
-                f' ON DELETE RESTRICT ON UPDATE RESTRICT;')
+                f'ALTER TABLE verify '
+                f'ADD FOREIGN KEY (user_id) REFERENCES users(id) '
+                f'ON DELETE RESTRICT ON UPDATE RESTRICT;')
             with connection.cursor() as cursor:
                 cursor.execute(query_verify)
                 cursor.execute(query_verify_foreign_key)

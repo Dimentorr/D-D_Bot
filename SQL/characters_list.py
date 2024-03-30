@@ -21,9 +21,9 @@ def create_table():
                                          f'file_id varchar(512) not null'
                                          f');')
             query_foreign_key_characters_list = (
-                f'ALTER TABLE characters_list'
-                f' ADD FOREIGN KEY (user_id) REFERENCES users(id)'
-                f' ON DELETE RESTRICT ON UPDATE RESTRICT;')
+                f'ALTER TABLE characters_list '
+                f'ADD FOREIGN KEY (user_id) REFERENCES users(id) '
+                f'ON DELETE RESTRICT ON UPDATE RESTRICT;')
             with connection.cursor() as cursor:
                 cursor.execute(query_main_info_character)
                 # указываем user_id как внешний ключ с таблицей users

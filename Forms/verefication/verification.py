@@ -47,9 +47,9 @@ async def start_verify(call: types.CallbackQuery):
 
 
 async def input_gmail(call: types.CallbackQuery):
-    query_log = (f'SELECT gmail FROM verify '
+    query_log = ([f'SELECT gmail FROM verify '
                  f'WHERE user_id = '
-                 f'(SELECT id FROM users WHERE user_id = {call.from_user.id})')
+                 f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
     if con.work_with_MySQL(query_log):
         await call.message.answer('Вы уже прошли верефикацию!',
                                   reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
@@ -95,11 +95,11 @@ async def check_data(message: types.Message, state: FSMContext):
                                                                                            'repeat_generate_code_verify']))
     else:
         gmail = data['gmail']
-        user_id = con.work_with_MySQL(f'SELECT id FROM users '
-                                      f'WHERE user_id = "{message.from_user.id}"')[0][0]
+        user_id = con.work_with_MySQL([f'SELECT id FROM users '
+                                      f'WHERE user_id = "{message.from_user.id}"'])[0][0]
         try:
-            con.work_with_MySQL(f'INSERT INTO verify(gmail, user_id)'
-                                f' VALUES("{gmail}", {user_id})')
+            con.work_with_MySQL([f'INSERT INTO verify(gmail, user_id)'
+                                f' VALUES("{gmail}", {user_id})'])
             await message.answer(f'Добро пожаловать в D&D бота!\n'
                                  f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['Персонажи', 'Компании'],

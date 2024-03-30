@@ -18,7 +18,7 @@ con = Connection(host=env.read_json_data('DB_host'),
 
 
 async def input_login(call: types.CallbackQuery):
-    query_log = f'SELECT is_login FROM users WHERE user_id = {call.from_user.id}'
+    query_log = [f'SELECT is_login FROM users WHERE user_id = {call.from_user.id}']
     if con.work_with_MySQL(query_log):
         await call.message.answer('Вы уже имеете созданного пользователя!')
     else:
@@ -61,8 +61,8 @@ async def check_data(message: types.Message, state: FSMContext):
         name = data['name']
         password = data['password']
         try:
-            con.work_with_MySQL(f'INSERT INTO users(user_id, name_user, password, is_login)'
-                                f' VALUES("{message.from_user.id}", "{name}", "{password}", 1)')
+            con.work_with_MySQL([f'INSERT INTO users(user_id, name_user, password, is_login)'
+                                f' VALUES("{message.from_user.id}", "{name}", "{password}", 1)'])
             await message.answer(f'Добро пожаловать в D&D бота!\n'
                                  f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(

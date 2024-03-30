@@ -20,17 +20,17 @@ def create_table():
                                          f'player_id int not null'
                                          f');')
             query_foreign_key_character_id = (
-                f'ALTER TABLE selected_characters'
-                f' ADD FOREIGN KEY (character_id) REFERENCES characters_list(id)'
-                f' ON DELETE RESTRICT ON UPDATE RESTRICT;')
+                f'ALTER TABLE selected_characters '
+                f'ADD FOREIGN KEY (character_id) REFERENCES characters_list(id) '
+                f'ON DELETE RESTRICT ON UPDATE RESTRICT;')
             query_foreign_key_story_id = (
-                f'ALTER TABLE selected_characters'
-                f' ADD FOREIGN KEY (story_id) REFERENCES game_stories(id)'
-                f' ON DELETE RESTRICT ON UPDATE RESTRICT;')
+                f'ALTER TABLE selected_characters '
+                f'ADD FOREIGN KEY (story_id) REFERENCES game_stories(id) '
+                f'ON DELETE RESTRICT ON UPDATE RESTRICT;')
             query_foreign_key_player_id = (
-                f'ALTER TABLE selected_characters'
-                f' ADD FOREIGN KEY (player_id) REFERENCES users(id)'
-                f' ON DELETE RESTRICT ON UPDATE RESTRICT;')
+                f'ALTER TABLE selected_characters '
+                f'ADD FOREIGN KEY (player_id) REFERENCES users(id) '
+                f'ON DELETE RESTRICT ON UPDATE RESTRICT;')
 
             with connection.cursor() as cursor:
                 cursor.execute(query_main_info_character)

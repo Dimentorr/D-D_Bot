@@ -38,14 +38,14 @@ async def check_data(message: types.Message, state: FSMContext):
         data['password'] = message.text
     name = data['name']
     password = data['password']
-    if con.work_with_MySQL(f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"'):
+    if con.work_with_MySQL([f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"']):
         del_keyboard = types.ReplyKeyboardRemove()
         await message.answer('Добро пожаловать в D&D бота!', reply_markup=del_keyboard)
         await message.answer('Пожалуйста, выберите интерисующий вас пункт',
                              reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['Персонажи', 'Компании', 'Верификация'],
                                  call_back=['Character', 'Story', 'verify']))
-        con.work_with_MySQL(f'UPDATE users SET is_login = 1 WHERE name_user = "{name}" AND password = "{password}"')
+        con.work_with_MySQL([f'UPDATE users SET is_login = 1 WHERE name_user = "{name}" AND password = "{password}"'])
     else:
         await message.answer('Неверный логин или пароль!'
                              'Пожалуйста попробуйте сново',

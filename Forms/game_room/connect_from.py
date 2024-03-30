@@ -45,22 +45,22 @@ async def linc_group_check(message: types.Message, state: FSMContext):
     password = data['password']
 
     try:
-        check_GM = con.work_with_MySQL(f'SELECT user_id FROM users '
+        check_GM = con.work_with_MySQL([f'SELECT user_id FROM users '
                                        f'WHERE id = (SELECT GM_id FROM game_stories '
                                        f'WHERE id = (SELECT id FROM game_stories '
                                        f'WHERE id_group = "{group}" AND '
                                        f'password = "{password}")'
-                                       f')')[0][0]
+                                       f')'])[0][0]
     except IndexError:
         check_GM = -1
 
     try:
-        check_user = con.work_with_MySQL(f'SELECT user_id FROM users '
+        check_user = con.work_with_MySQL([f'SELECT user_id FROM users '
                                          f'WHERE id = (SELECT player_id FROM players_stories '
                                          f'WHERE id = (SELECT id FROM game_stories '
                                          f'WHERE id_group = "{group}" AND '
                                          f'password = "{password}")'
-                                         f')')[0][0]
+                                         f')'])[0][0]
     except IndexError:
         check_user = -1
 
@@ -76,11 +76,11 @@ async def linc_group_check(message: types.Message, state: FSMContext):
                              reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
                                                                                 call_back=['start'])
                              )
-        con.work_with_MySQL(f'INSERT INTO players_stories (player_id, story_id) '
+        con.work_with_MySQL([f'INSERT INTO players_stories (player_id, story_id) '
                                   f'VALUES ('
                                   f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
                                   f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
-                                  f')')
+                                  f')'])
     elif (message.from_user.id == int(check_GM)) or (message.from_user.id == int(check_user)):
         await message.answer('Вы уже являетесь участником этой компании!',
                              reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],

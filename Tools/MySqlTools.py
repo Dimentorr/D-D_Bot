@@ -10,7 +10,20 @@ class Connection:
         self.user = user
         self.password = password
 
-    def work_with_MySQL(self, query_text='Select * from users'):
+    def main_query_block(self, connection, query_text):
+        query = query_text
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchall()
+            cursor.close()
+        try:
+            connection.commit()
+        except Exception as err:
+            print(f'Невозможно сохранить изменения')
+            print(f'Ошибка - {err}')
+        return result
+
+    def work_with_MySQL(self, query_text=list):
         try:
             with mysql.connector.connect(
                     host=self.host,
@@ -19,18 +32,13 @@ class Connection:
                     user=self.user,
                     password=self.password
             ) as connection:
-                query = (
-                    query_text
-                )
-                with connection.cursor() as cursor:
-                    cursor.execute(query)
-                    result = cursor.fetchall()
-                    try:
-                        connection.commit()
-                    except Exception as err:
-                        print(f'Невозможно сохранить изменения')
-                        print(f'Ошибка - {err}')
-                    return result
+                for i in query_text:
+                    if type(i) == str:
+                        result = self.main_query_block(connection, i)
+                    else:
+                        for j in i:
+                            result = self.main_query_block(connection, j)
+                return result
         except mysql.connector.Error as e:
             err_text = f'(ERROR)MySQL Tools: {e}'
             print(err_text)
