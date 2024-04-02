@@ -15,13 +15,6 @@ con = Connection(host=env.read_json_data('DB_host'),
 
 
 async def group_choice(call: types.CallbackQuery):
-    # create_temp_table = 'CREATE TEMPORARY TABLE user_and_group AS SELECT '
-    # insert_data_in_temp_table = ()
-    # ------------------------------------------------------------------------------------------------
-    # user_id = con.work_with_MySQL(f'SELECT id FROM users WHERE user_id = "{call.from_user.id}"')[0][0]
-    # print(user_id)
-    # ИЗМЕНИТЬ MySQLTools для работы с запросами, которые возвращают таблицы
-    # ИЗМЕНИТЬ ЗАПРОС НА TEMPORARY TABLE
     query = ([[f'CREATE TEMPORARY TABLE user_and_group AS SELECT '
                f'game_stories.name_story as story, '
                f'game_stories.id as story_id, '
@@ -33,7 +26,6 @@ async def group_choice(call: types.CallbackQuery):
               [f'SELECT story, story_id FROM user_and_group '
                f'WHERE player_id=(SELECT id FROM users WHERE user_id = {call.from_user.id});']
               ])
-
     names_id = con.work_with_MySQL(con.work_with_MySQL(query))
 
     name_buttons = [f'{i[0]}:{i[1]}' for i in names_id]

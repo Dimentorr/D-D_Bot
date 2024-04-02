@@ -15,7 +15,7 @@ def create_table():
         ) as connection:
             query_verify = (f'CREATE TABLE IF NOT EXISTS verify('
                             f'id int not null primary key auto_increment,'
-                            f'gmail int not null,'
+                            f'gmail varchar(255) not null,'
                             f'user_id int not null'
                             f')')
             query_verify_foreign_key = (

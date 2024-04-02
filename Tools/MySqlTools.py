@@ -35,13 +35,15 @@ class Connection:
                 for i in query_text:
                     if type(i) == str:
                         result = self.main_query_block(connection, i)
+                    if type(i) == tuple:
+                        # почему-то возникает баг, при котором в каскаде запросов с созданием временной таблицы
+                        # функция вызывается ещё раз, но в качестве аргумента на вход подаётся уже полученный ответ
+                        return query_text
                     else:
                         for j in i:
                             result = self.main_query_block(connection, j)
                 return result
         except mysql.connector.Error as e:
-            err_text = f'(ERROR)MySQL Tools: {e}'
-            print(err_text)
-            print(query_text)
+            print(f'(ERROR)MySQL Tools: {e}')
             connection.rollback()
             return 0

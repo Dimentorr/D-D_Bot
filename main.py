@@ -49,12 +49,12 @@ con = Connection(host=env.read_json_data('DB_host'),
 async def start_bot(call: CallbackQuery, state: FSMContext):
     if call.message.chat.type == 'private':
         await state.finish()
-        if con.work_with_MySQL(f'SELECT id FROM users WHERE user_id = {call.from_user.id}'):
+        if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {call.from_user.id}']):
             buts = ['Персонажи', 'Компании']
             call_backs = ['Character', 'Story']
-            query_log = (f'SELECT gmail FROM verify '
+            query_log = ([f'SELECT gmail FROM verify '
                          f'WHERE user_id = '
-                         f'(SELECT id FROM users WHERE user_id = {call.from_user.id})')
+                         f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
             if not con.work_with_MySQL(query_log):
                 buts.append('Верификация')
                 call_backs.append('verify')
@@ -73,12 +73,22 @@ async def start_bot(call: CallbackQuery, state: FSMContext):
 async def start_bot(message: Message, state: FSMContext):
     if message.chat.type == 'private':
         await state.finish()
-        if con.work_with_MySQL(f'SELECT id FROM users WHERE user_id = {message.from_user.id}'):
+        await message.answer('Этот бот предназначен для:\n'
+                             '1. хранения листов персонажей игроков\n'
+                             '2. создания мастером игры групп для общения с игроками\n'
+                             '(там же все участники компании смогут получить права доступа для '
+                             'просмотра листов персонажей друг-друга)\n'
+                             '3. Некоторые функции со временем также появятся (например:'
+                             ' в планах добавить возможность установить время для игры, по которому '
+                             'бот в личные сообщения будет периодически напоминать об предстоящей игре)'
+                             '\n\n'
+                             'P.S. По поводу новых функций бота можно написать сюда - @lie_of_life')
+        if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {message.from_user.id}']):
             buts = ['Персонажи', 'Компании']
             call_backs = ['Character', 'Story']
-            query_log = (f'SELECT gmail FROM verify '
+            query_log = ([f'SELECT gmail FROM verify '
                          f'WHERE user_id = '
-                         f'(SELECT id FROM users WHERE user_id = {message.from_user.id})')
+                         f'(SELECT id FROM users WHERE user_id = {message.from_user.id})'])
             if not con.work_with_MySQL(query_log):
                 buts.append('Верификация')
                 call_backs.append('verify')
