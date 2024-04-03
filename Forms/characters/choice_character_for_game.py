@@ -1,5 +1,5 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
@@ -14,7 +14,7 @@ con = Connection(host=env.read_json_data('DB_host'),
                  password=env.read_json_data('DB_password'))
 
 
-async def group_choice(call: types.CallbackQuery):
+async def group_choice(call: types.CallbackQuery, state: FSMContext):
     query = ([[f'CREATE TEMPORARY TABLE user_and_group AS SELECT '
                f'game_stories.name_story as story, '
                f'game_stories.id as story_id, '
@@ -31,7 +31,7 @@ async def group_choice(call: types.CallbackQuery):
     name_buttons = [f'{i[0]}:{i[1]}' for i in names_id]
 
     if name_buttons:
-        await states_choice_character.StepsChoice.group.set()
+        await state.set_state(states_choice_character.StepsChoice.group)
         await call.message.answer(f'Пожалуйста выберите интерисующую вас компанию:',
                                   reply_markup=BotTools.construction_inline_keyboard_for_choice(
                                       name_buttons=name_buttons, start_cd='choice_group'))
@@ -41,18 +41,14 @@ async def group_choice(call: types.CallbackQuery):
                                       buttons=['Назад'],
                                       call_back=['start']
                                       ))
-    await call.answer()
     await call.message.delete()
 
 
 async def character_choice(call: types.CallbackQuery, state: FSMContext):
-    async with state.proxy() as data:
-        data['group'] = call.data
-    print([f'SELECT name_character, id FROM characters_list WHERE user_id = ('
-                                           f'SELECT id FROM users WHERE user_id = {call.from_user.id})'])
+    await state.update_data(group=call.data)
+    data = await state.get_data()
     first_check = con.work_with_MySQL([f'SELECT name_character, id FROM characters_list WHERE user_id = ('
                                            f'SELECT id FROM users WHERE user_id = {call.from_user.id})'])
-    print(first_check)
     if first_check:
         id_user = con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {call.from_user.id}'])[0][0]
         names_and_id = con.work_with_MySQL([f'SELECT name_character, id '
@@ -75,12 +71,12 @@ async def character_choice(call: types.CallbackQuery, state: FSMContext):
                            f'Если вы осознано хотите заменить персонажа для выбранной компании - выберите персонажа:')
             else:
                 message = f'Выберите персонажа:'
-            await states_choice_character.StepsChoice.next()
+            await state.set_state(states_choice_character.StepsChoice.character)
             await call.message.answer(message,
                                       reply_markup=BotTools.construction_inline_keyboard_for_choice(
                                           name_buttons=name_buttons, start_cd='choice_character'))
         else:
-            await state.finish()
+            await state.clear()
             await call.message.answer(f'Все ваши персонажи уже распределены по компаниям!\n\n'
                                       f'Создайте нового персонажа для этой игры или отвяжите уже существующего',
                                       reply_markup=BotTools.construction_inline_keyboard(
@@ -88,45 +84,35 @@ async def character_choice(call: types.CallbackQuery, state: FSMContext):
                                           call_back=[['new_character'], ['start']]
                                       ))
     else:
-        await state.finish()
+        await state.clear()
         await call.message.answer(f'У вас пока что нет созданных персонажей!',
                                   reply_markup=BotTools.construction_inline_keyboard(
                                       buttons=[['Создать персонажа'], ['Назад']],
                                       call_back=[['new_character'], ['start']]
                                   ))
-    await call.answer()
     await call.message.delete()
 
+
 async def save_choice(call: types.CallbackQuery, state: FSMContext):
-    print(1)
-    async with state.proxy() as data:
-        data['character'] = call.data
-    print(data['character'])
-    print(data["group"])
+    await state.update_data(character=call.data)
+    data = await state.get_data()
     selected_character = con.work_with_MySQL([f'SELECT character_id FROM selected_characters '
                                              f'WHERE story_id = {data["group"].split(":")[1]};'])
-    print(selected_character)
     character_name_id = data["character"].split("-")[1].split(":")
-    print(character_name_id)
     story_name_id = data["group"].split("-")[1].split(":")
-    print(story_name_id)
     if selected_character:
-        print('update')
         con.work_with_MySQL([f'UPDATE selected_characters '
                             f'SET character_id = {character_name_id[1]} '
                             f'WHERE character_id = {selected_character[0][0]}'])
     else:
-        print('insert')
         con.work_with_MySQL([f'INSERT INTO selected_characters (story_id, character_id, player_id)'
                             f'VALUES({story_name_id[1]}, {character_name_id[1]}, '
                             f'(SELECT id FROM users WHERE user_id = {call.from_user.id}))'])
-        print('keyboard')
     await call.message.answer(f'Ваш персонаж - <|{character_name_id[0]}|>,'
                               f' теперь привязан к компании - <|{story_name_id[0]}|>!',
                               reply_markup=BotTools.construction_inline_keyboard(
                                   buttons=['Назад'],
                                   call_back=['start']
                               ))
-    await call.answer()
     await call.message.delete()
-    await state.finish()
+    await state.clear()

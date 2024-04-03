@@ -1,6 +1,6 @@
 from aiogram import types
 
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson

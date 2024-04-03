@@ -1,6 +1,6 @@
 from aiogram import types
 
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
@@ -17,25 +17,24 @@ con = Connection(host=env.read_json_data('DB_host'),
                  password=env.read_json_data('DB_password'))
 
 
-async def input_login(call: types.CallbackQuery):
+async def input_login(call: types.CallbackQuery, state: FSMContext):
     await call.message.delete()
-    await states_reg_log.StepsLogin.name.set()
+    await state.set_state(states_reg_log.StepsLogin.name)
     await call.message.answer('Введите логин:',
                               reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                  call_back=['start']))
 
 
 async def input_password(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['name'] = message.text
-    await states_reg_log.StepsLogin.next()
+    await state.update_data(name=message.text)
+    await state.set_state(states_reg_log.StepsLogin.password)
     await message.answer('Введите пароль:',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['start']))
 
 
 async def check_data(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['password'] = message.text
+    await state.update_data(password=message.text)
+    data = await state.get_data()
     name = data['name']
     password = data['password']
     if con.work_with_MySQL([f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"']):

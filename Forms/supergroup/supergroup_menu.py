@@ -38,11 +38,11 @@ async def group_menu_mess(message: types.Message):
                                ))
 
 
-def check_verify(user_id: str):
+def check_verify(user_id: str | int):
     mail = con.work_with_MySQL([f'Select gmail FROM verify '
-                               f'WHERE user_id = '
-                               f'(Select id FROM users '
-                               f'WHERE user_id = {user_id})'])
+                                f'WHERE user_id = '
+                                f'(Select id FROM users '
+                                f'WHERE user_id = {user_id})'])
     if mail:
         return mail[0][0]
     else:
@@ -78,20 +78,20 @@ async def start_get_permissions(call: types.CallbackQuery):
     data_buttons = []
     for player_id in ids_users:
         character = con.work_with_temporary_on_MySQL([[f'CREATE TEMPORARY TABLE user_character_id AS '
-                                          f'SELECT users.id as user_id, '
-                                          f'users.name_user as user, '
-                                          f'characters_list.id as character_id, '
-                                          f'selected_characters.story_id as story_id '
-                                          f'FROM '
-                                          f'selected_characters '
-                                          f'INNER JOIN characters_list '
-                                          f'ON characters_list.id = selected_characters.character_id '
-                                          f'INNER JOIN users '
-                                          f'ON users.id = selected_characters.player_id;'],
-                                         [f'SELECT user, character_id '
-                                          f'FROM user_character_id '
-                                          f'WHERE '
-                                          f'story_id = {group_id} AND user_id = {player_id};']])
+                                                       f'SELECT users.id as user_id, '
+                                                       f'users.name_user as user, '
+                                                       f'characters_list.id as character_id, '
+                                                       f'selected_characters.story_id as story_id '
+                                                       f'FROM '
+                                                       f'selected_characters '
+                                                       f'INNER JOIN characters_list '
+                                                       f'ON characters_list.id = selected_characters.character_id '
+                                                       f'INNER JOIN users '
+                                                       f'ON users.id = selected_characters.player_id;'],
+                                                      [f'SELECT user, character_id '
+                                                       f'FROM user_character_id '
+                                                       f'WHERE '
+                                                       f'story_id = {group_id} AND user_id = {player_id};']])
         if character:
             data_buttons.append(f'{character[0][0]}:{character[0][1]}')
         else:

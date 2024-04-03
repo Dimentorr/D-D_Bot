@@ -1,5 +1,5 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 
 from States import states_create_character
 from Tools.BotTools import Tools
@@ -27,7 +27,6 @@ async def menu_characters(call: types.CallbackQuery):
                                              ['choice_characters'],
                                              ['start']])
                               )
-    await call.answer()
     await call.message.delete()
 
 
@@ -80,8 +79,8 @@ async def new_sheet_character(call: types.CallbackQuery):
     await call.message.delete()
 
 
-async def input_name_character(call: types.CallbackQuery):
-    await states_create_character.StepsCreateCharacter.name.set()
+async def input_name_character(call: types.CallbackQuery, state: FSMContext):
+    await state.set_state(states_create_character.StepsCreateCharacter.name)
     await call.message.answer('Введите имя персонажа',
                               reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                  call_back=['start']))
@@ -95,9 +94,9 @@ async def create_sheet_character(message: types.Message, state: FSMContext):
                                                                                    call_back=['start']))
 
     await temp.delete()
-    async with state.proxy() as data:
-        data['name'] = message.text
-        name_character = data['name']
+    await state.update_data(name=message.text)
+    data = await state.get_data()
+    name_character = data['name']
     sheet = GoogleTools.create_item(item_name=name_character,
                                     mail=f'{check_verify(message.from_user.id)}')
     web_link = sheet['webViewLink']
@@ -109,4 +108,4 @@ async def create_sheet_character(message: types.Message, state: FSMContext):
                          f'Ссылка на лист персонажа: {web_link}',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                             call_back=['start']))
-    await state.finish()
+    await state.clear()

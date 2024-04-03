@@ -1,6 +1,6 @@
 from aiogram import types
 
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
@@ -28,8 +28,8 @@ def verify_code(gmail: str):
 
 
 async def repeat_generate_code(call: types.CallbackQuery, state: FSMContext):
-    async with state.proxy() as data:
-        data['generate_code'] = verify_code(data['gmail'])
+    data = await state.get_data()
+    await state.update_data(generate_code=verify_code(data['gmail']))
     await call.message.answer(f'Введите новый код подтверждения из письма:',
                               reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                  call_back=['start']))
@@ -46,7 +46,7 @@ async def start_verify(call: types.CallbackQuery):
     await call.message.delete()
 
 
-async def input_gmail(call: types.CallbackQuery):
+async def input_gmail(call: types.CallbackQuery, state: FSMContext):
     query_log = ([f'SELECT gmail FROM verify '
                  f'WHERE user_id = '
                  f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
@@ -55,7 +55,7 @@ async def input_gmail(call: types.CallbackQuery):
                                   reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                      call_back=['start']))
     else:
-        await states_verifiction.StepsVerification.gmail.set()
+        await state.set_state(states_verifiction.StepsVerification.gmail)
         await call.message.answer('Введите вашу Google почту:',
                                   reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                      call_back=['start']))
@@ -64,27 +64,27 @@ async def input_gmail(call: types.CallbackQuery):
 
 
 async def input_code(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        if message.text.split('@')[1] == 'gmail.com' and len(message.text.split('@')) == 2:
-            data['gmail'] = message.text
-            data['generate_code'] = verify_code(data['gmail'])
-            await states_verifiction.StepsVerification.next()
-            await message.answer('Введите код подтверждения из письма:',
-                                 reply_markup=BotTools.construction_inline_keyboard(
-                                     buttons=['Назад', 'Отправить заново'],
-                                     call_back=['start', 'repeat_generate_code_verify']))
-        else:
-            await states_verifiction.StepsVerification.gmail.set()
-            await message.answer('Для правильно работы бота необходима именно Google почта!\n'
-                                 'Убедитесь, что в конце адресса почты Вы указали "@gmail.com"\n'
-                                 'Повторите попытку ввода вашу Google почту:',
+    if message.text.split('@')[1] == 'gmail.com' and len(message.text.split('@')) == 2:
+        await state.update_data(gmail=message.text)
+        data = await state.get_data()
+        await state.update_data(generate_code=verify_code(data['gmail']))
+        await state.set_state(states_verifiction.StepsVerification.code)
+        await message.answer('Введите код подтверждения из письма:',
+                             reply_markup=BotTools.construction_inline_keyboard(
+                                 buttons=['Назад', 'Отправить заново'],
+                                 call_back=['start', 'repeat_generate_code_verify']))
+    else:
+        await state.set_state(states_verifiction.StepsVerification.gmail)
+        await message.answer('Для правильно работы бота необходима именно Google почта!\n'
+                             'Убедитесь, что в конце адресса почты Вы указали "@gmail.com"\n'
+                             'Повторите попытку ввода вашу Google почту:',
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                     call_back=['start']))
 
 
 async def check_data(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['code'] = message.text
+    await state.update_data(code=message.text)
+    data = await state.get_data()
 
     if str(data['code']) != str(data['generate_code']):
         await states_verifiction.StepsVerification.code.set()
@@ -113,5 +113,5 @@ async def check_data(message: types.Message, state: FSMContext):
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['В начало'],
                                                                                     call_back=['start'])
                                  )
-        await state.finish()
+        await state.clear()
 

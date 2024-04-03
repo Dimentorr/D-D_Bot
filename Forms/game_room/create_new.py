@@ -1,5 +1,5 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
@@ -20,9 +20,9 @@ def get_username(call: types.CallbackQuery):
     return call.from_user.username
 
 
-async def create_group_name(call: types.CallbackQuery):
+async def create_group_name(call: types.CallbackQuery, state: FSMContext):
     if get_username(call):
-        await states_create_group.StepsCreate.name_group.set()
+        await state.set_state(states_create_group.StepsCreate.name_group)
         await call.message.answer(f'Введите название компании',
                                   reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
                                                                                      call_back=['start'])
@@ -40,18 +40,16 @@ async def create_group_name(call: types.CallbackQuery):
 
 
 async def create_group_password(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['name_group'] = message.text
-    await states_create_group.StepsCreate.next()
+    await state.update_data(name_group=message.text)
+    await state.set_state(states_create_group.StepsCreate.password)
     await message.answer(f'Введите пароль от комнаты\n',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'], call_back=['start'])
                          )
 
 
 async def create_group_repeat_password(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['password'] = message.text
-    await states_create_group.StepsCreate.next()
+    await state.update_data(password=message.text)
+    await state.set_state(states_create_group.StepsCreate.repeat_password)
     await message.answer(f'Повторите пароль от комнаты\n',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'], call_back=['start'])
                          )
@@ -59,8 +57,8 @@ async def create_group_repeat_password(message: types.Message, state: FSMContext
 
 async def create_group_check(message: types.Message, state: FSMContext):
     from main import bot
-    async with state.proxy() as data:
-        data['repeat_password'] = message.text
+    await state.update_data(repeat_password=message.text)
+    data = await state.get_data()
     name = data['name_group']
     password = data['password']
     if password == data['repeat_password']:
@@ -95,4 +93,4 @@ async def create_group_check(message: types.Message, state: FSMContext):
                                                                                          ['На главную']],
                                                                                 call_back=[['create_new_game'],
                                                                                            ['start']]))
-    await state.finish()
+    await state.clear()
