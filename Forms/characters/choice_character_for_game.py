@@ -26,7 +26,7 @@ async def group_choice(call: types.CallbackQuery):
               [f'SELECT story, story_id FROM user_and_group '
                f'WHERE player_id=(SELECT id FROM users WHERE user_id = {call.from_user.id});']
               ])
-    names_id = con.work_with_MySQL(con.work_with_MySQL(query))
+    names_id = con.work_with_temporary_on_MySQL(query)
 
     name_buttons = [f'{i[0]}:{i[1]}' for i in names_id]
 
@@ -48,8 +48,11 @@ async def group_choice(call: types.CallbackQuery):
 async def character_choice(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         data['group'] = call.data
+    print([f'SELECT name_character, id FROM characters_list WHERE user_id = ('
+                                           f'SELECT id FROM users WHERE user_id = {call.from_user.id})'])
     first_check = con.work_with_MySQL([f'SELECT name_character, id FROM characters_list WHERE user_id = ('
                                            f'SELECT id FROM users WHERE user_id = {call.from_user.id})'])
+    print(first_check)
     if first_check:
         id_user = con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {call.from_user.id}'])[0][0]
         names_and_id = con.work_with_MySQL([f'SELECT name_character, id '

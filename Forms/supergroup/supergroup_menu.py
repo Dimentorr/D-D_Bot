@@ -75,22 +75,9 @@ async def start_get_permissions(call: types.CallbackQuery):
         await call.message.delete()
         return 0
 
-    # query_create_temp = (f'CREATE TEMPORARY TABLE user_character_id AS '
-    #                      f'SELECT users.id as user_id, '
-    #                      f'users.name_user as user, '
-    #                      f'characters_list.id as character_id, '
-    #                      f'selected_characters.story_id as story_id '
-    #                      f'FROM '
-    #                      f'selected_characters '
-    #                      f'INNER JOIN characters_list '
-    #                      f'ON characters_list.id = selected_characters.character_id '
-    #                      f'INNER JOIN users '
-    #                      f'ON users.id = selected_characters.player_id;')
-
-    # con.work_with_MySQL(query_create_temp)
     data_buttons = []
     for player_id in ids_users:
-        character = con.work_with_MySQL([[f'CREATE TEMPORARY TABLE user_character_id AS '
+        character = con.work_with_temporary_on_MySQL([[f'CREATE TEMPORARY TABLE user_character_id AS '
                                           f'SELECT users.id as user_id, '
                                           f'users.name_user as user, '
                                           f'characters_list.id as character_id, '
