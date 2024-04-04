@@ -24,12 +24,16 @@ from SQL import users, characters_list, game_story, verify, selected_characters
 
 from asyncio import new_event_loop, set_event_loop
 
+from aiogram.client.session.aiohttp import AiohttpSession
+
 
 set_event_loop(new_event_loop())
 
 BotTools = Tools()
 GoogleTools = GoogleTools()
 env = CatalogJson(name='file/json/environment.json')
+# session = AiohttpSession(proxy='http://proxy.server:3128')
+# bot = Bot(token=env.read_json_data('TOKEN'), session=session)
 bot = Bot(token=env.read_json_data('TOKEN'))
 dp = Dispatcher()
 
@@ -150,12 +154,10 @@ dp.callback_query.register(supergroup_menu.supergroup_check_list_characters,
 
 if __name__ == "__main__":
     if int(env.read_json_data('create_table')):
-        users.create_table()
-        verify.create_table()
-        characters_list.create_table()
-        game_story.create_table()
-        selected_characters.create_table()
+        users.create_table(is_mysql=False)
+        verify.create_table(is_mysql=False)
+        characters_list.create_table(is_mysql=False)
+        game_story.create_table(is_mysql=False)
+        selected_characters.create_table(is_mysql=False)
     print('Запускаю шайтан-машину!')
     asyncio.run(dp.start_polling(bot, skip_updates=True))
-    print('Работаю!')
-    # print('sidf' in 'si')

@@ -17,12 +17,12 @@ con = Connection(host=env.read_json_data('DB_host'),
                  password=env.read_json_data('DB_password'))
 
 
-async def input_login(call: types.CallbackQuery):
+async def input_login(call: types.CallbackQuery, state: FSMContext):
     query_log = [f'SELECT is_login FROM users WHERE user_id = {call.from_user.id}']
     if con.work_with_MySQL(query_log):
         await call.message.answer('Вы уже имеете созданного пользователя!')
     else:
-        await states_reg_log.StepsReg.name.set()
+        await state.set_state(states_reg_log.StepsReg.name)
         await call.message.answer('Введите логин:',
                                   reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                      call_back=['Back']))
@@ -31,26 +31,22 @@ async def input_login(call: types.CallbackQuery):
 
 
 async def input_password(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['name'] = message.text
-
-    await states_reg_log.StepsReg.next()
+    await state.update_data(name=message.text)
+    await state.set_state(states_reg_log.StepsReg.password)
     await message.answer('Введите пароль:',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['Back']))
 
 
 async def input_repeat_password(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['password'] = message.text
-
-    await states_reg_log.StepsReg.next()
+    await state.update_data(password=message.text)
+    await state.set_state(states_reg_log.StepsReg.repeat_password)
     await message.answer('Введите пароль повторно:',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'], call_back=['Back']))
 
 
 async def check_data(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['repeat_password'] = message.text
+    await state.update_data(repeat_password=message.text)
+    data = await state.get_data()
 
     if data['repeat_password'] != data['password']:
         await message.answer('Пароли не совпадают! Повторите изначальный пароль.')
@@ -77,5 +73,5 @@ async def check_data(message: types.Message, state: FSMContext):
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['В начало'],
                                                                                     call_back=['start'])
                                  )
-        await state.finish()
+        await state.clear()
 
