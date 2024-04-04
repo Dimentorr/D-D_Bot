@@ -5,6 +5,8 @@ from aiogram.fsm.context import FSMContext
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
+from Tools.SQLiteTools import Connection as LiteConnection
+
 from States import states_reg_log
 
 
@@ -15,6 +17,7 @@ con = Connection(host=env.read_json_data('DB_host'),
                  database_name=env.read_json_data('DB_database'),
                  user=env.read_json_data('DB_user'),
                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path='file/db/bot_base.db')
 
 
 async def input_login(call: types.CallbackQuery, state: FSMContext):
@@ -37,17 +40,20 @@ async def check_data(message: types.Message, state: FSMContext):
     data = await state.get_data()
     name = data['name']
     password = data['password']
-    if con.work_with_MySQL([f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"']):
+    # if con.work_with_MySQL([f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"']):
+    if l_con.work_with_SQLite([f'SELECT id FROM users WHERE name_user = "{name}" AND password = "{password}"']):
         del_keyboard = types.ReplyKeyboardRemove()
         await message.answer('Добро пожаловать в D&D бота!', reply_markup=del_keyboard)
         await message.answer('Пожалуйста, выберите интерисующий вас пункт',
                              reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['Персонажи', 'Компании', 'Верификация'],
                                  call_back=['Character', 'Story', 'verify']))
-        con.work_with_MySQL([f'UPDATE users SET is_login = 1 WHERE name_user = "{name}" AND password = "{password}"'])
+        # con.work_with_MySQL([f'UPDATE users SET is_login = 1 WHERE name_user = "{name}" AND password = "{password}"'])
+        l_con.work_with_SQLite(
+            [f'UPDATE users SET is_login = 1 WHERE name_user = "{name}" AND password = "{password}"'])
     else:
         await message.answer('Неверный логин или пароль!'
                              'Пожалуйста попробуйте сново',
                              reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['Попробовать сново', 'Регистрация'], call_back=['Login', 'Registration']))
-    await state.finish()
+    await state.clear()

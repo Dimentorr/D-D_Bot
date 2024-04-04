@@ -4,6 +4,7 @@ from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
+from Tools.SQLiteTools import Connection as LiteConnection
 
 import Forms.autorization.register as reg_step
 from Forms.game_room import main_menu, connect_from, create_new
@@ -43,19 +44,22 @@ con = Connection(host=env.read_json_data('DB_host'),
                  database_name=env.read_json_data('DB_database'),
                  user=env.read_json_data('DB_user'),
                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path='file/db/bot_base.db')
 
 
 @dp.callback_query(F.data == 'start')
 async def start_bot(call: CallbackQuery, state: FSMContext):
     if call.message.chat.type == 'private':
         await state.clear()
-        if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {call.from_user.id}']):
+        # if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {call.from_user.id}']):
+        if l_con.work_with_SQLite([f'SELECT id FROM users WHERE user_id = {call.from_user.id}']):
             buts = ['Персонажи', 'Компании']
             call_backs = ['Character', 'Story']
             query_log = ([f'SELECT gmail FROM verify '
-                         f'WHERE user_id = '
-                         f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
-            if not con.work_with_MySQL(query_log):
+                          f'WHERE user_id = '
+                          f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
+            # if not con.work_with_MySQL(query_log):
+            if not l_con.work_with_SQLite(query_log):
                 buts.append('Верификация')
                 call_backs.append('verify')
             await call.message.answer(f'Добро пожаловать в D&D бота!\n'
@@ -83,13 +87,15 @@ async def start_bot(message: Message, state: FSMContext):
                              'бот в личные сообщения будет периодически напоминать об предстоящей игре)'
                              '\n\n'
                              'P.S. По поводу новых функций бота можно написать сюда - @lie_of_life')
-        if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {message.from_user.id}']):
+        # if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {message.from_user.id}']):
+        if l_con.work_with_SQLite([f'SELECT id FROM users WHERE user_id = {message.from_user.id}']):
             buts = ['Персонажи', 'Компании']
             call_backs = ['Character', 'Story']
             query_log = ([f'SELECT gmail FROM verify '
-                         f'WHERE user_id = '
-                         f'(SELECT id FROM users WHERE user_id = {message.from_user.id})'])
-            if not con.work_with_MySQL(query_log):
+                          f'WHERE user_id = '
+                          f'(SELECT id FROM users WHERE user_id = {message.from_user.id})'])
+            # if not con.work_with_MySQL(query_log):
+            if not l_con.work_with_SQLite(query_log):
                 buts.append('Верификация')
                 call_backs.append('verify')
             await message.answer(f'Добро пожаловать в D&D бота!\n'

@@ -1,8 +1,11 @@
 from aiogram import types
 from aiogram.fsm.context import FSMContext
+
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
+from Tools.SQLiteTools import Connection as LiteConnection
+
 from States import states_create_group
 
 import pyro
@@ -14,6 +17,7 @@ con = Connection(host=env.read_json_data('DB_host'),
                  database_name=env.read_json_data('DB_database'),
                  user=env.read_json_data('DB_user'),
                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path='file/db/bot_base.db')
 
 
 def get_username(call: types.CallbackQuery):
@@ -69,12 +73,18 @@ async def create_group_check(message: types.Message, state: FSMContext):
             admin_is_gm = (f'@{username}' == env.read_json_data("ADMIN_USERNAME"))
             id_group = await pyro.supergroup_create(title=name, bot_name=bot_name,
                                                     user_name=f'@{username}', admin_gm=admin_is_gm)
-            con.work_with_MySQL([f'INSERT INTO game_stories (GM_id, name_story, id_group, password) '
-                                f'VALUES ('
-                                f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-                                f'"{name}",'
-                                f'"{id_group}",'
-                                f'"{password}")'])
+            # con.work_with_MySQL([f'INSERT INTO game_stories (GM_id, name_story, id_group, password) '
+            #                      f'VALUES ('
+            #                      f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
+            #                      f'"{name}",'
+            #                      f'"{id_group}",'
+            #                      f'"{password}")'])
+            l_con.work_with_SQLite([f'INSERT INTO game_stories (GM_id, name_story, id_group, password) '
+                                    f'VALUES ('
+                                    f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
+                                    f'"{name}",'
+                                    f'"{id_group}",'
+                                    f'"{password}")'])
             await message.answer('Готово!',
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
                                                                                     call_back=['start']))

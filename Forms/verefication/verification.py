@@ -6,6 +6,7 @@ from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.GoogleAPITools import GoogleTools
 from Tools.BotTools import Tools
+from Tools.SQLiteTools import Connection as LiteConnection
 
 from States import states_verifiction
 
@@ -19,6 +20,7 @@ con = Connection(host=env.read_json_data('DB_host'),
                  database_name=env.read_json_data('DB_database'),
                  user=env.read_json_data('DB_user'),
                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path='file/db/bot_base.db')
 
 
 def verify_code(gmail: str):
@@ -48,9 +50,10 @@ async def start_verify(call: types.CallbackQuery):
 
 async def input_gmail(call: types.CallbackQuery, state: FSMContext):
     query_log = ([f'SELECT gmail FROM verify '
-                 f'WHERE user_id = '
-                 f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
-    if con.work_with_MySQL(query_log):
+                  f'WHERE user_id = '
+                  f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
+    # if con.work_with_MySQL(query_log):
+    if l_con.work_with_SQLite(query_log):
         await call.message.answer('Вы уже прошли верефикацию!',
                                   reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
                                                                                      call_back=['start']))
@@ -95,11 +98,15 @@ async def check_data(message: types.Message, state: FSMContext):
                                                                                            'repeat_generate_code_verify']))
     else:
         gmail = data['gmail']
-        user_id = con.work_with_MySQL([f'SELECT id FROM users '
-                                      f'WHERE user_id = "{message.from_user.id}"'])[0][0]
+        # user_id = con.work_with_MySQL([f'SELECT id FROM users '
+        #                               f'WHERE user_id = "{message.from_user.id}"'])[0][0]
+        user_id = l_con.work_with_SQLite([f'SELECT id FROM users '
+                                          f'WHERE user_id = "{message.from_user.id}"'])[0][0]
         try:
-            con.work_with_MySQL([f'INSERT INTO verify(gmail, user_id)'
-                                f' VALUES("{gmail}", {user_id})'])
+            # con.work_with_MySQL([f'INSERT INTO verify(gmail, user_id)'
+            #                     f' VALUES("{gmail}", {user_id})'])
+            l_con.work_with_SQLite([f'INSERT INTO verify(gmail, user_id)'
+                                    f' VALUES("{gmail}", {user_id})'])
             await message.answer(f'Добро пожаловать в D&D бота!\n'
                                  f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['Персонажи', 'Компании'],

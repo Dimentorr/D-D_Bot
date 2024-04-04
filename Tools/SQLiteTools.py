@@ -13,6 +13,7 @@ class Connection:
         except Exception as err:
             print(f'Невозможно сохранить изменения')
             print(f'Ошибка - {err}')
+            print(query_text)
         return result
 
     def work_with_SQLite(self, query: list):
@@ -30,4 +31,5 @@ class Connection:
         except Exception as err:
             print(f'Невозможно сохранить изменения')
             print(f'Ошибка - {err}')
+            print(query)
         return []

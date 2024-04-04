@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from Tools.MySqlTools import Connection
 from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
+from Tools.SQLiteTools import Connection as LiteConnection
+
 from States import states_connect_to
 
 BotTools = Tools()
@@ -14,6 +16,7 @@ con = Connection(host=env.read_json_data('DB_host'),
                  database_name=env.read_json_data('DB_database'),
                  user=env.read_json_data('DB_user'),
                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path='file/db/bot_base.db')
 
 
 async def linc_group_id(call: types.CallbackQuery, state: FSMContext):
@@ -44,26 +47,41 @@ async def linc_group_check(message: types.Message, state: FSMContext):
     password = data['password']
 
     try:
-        check_GM = con.work_with_MySQL([f'SELECT user_id FROM users '
-                                        f'WHERE id = (SELECT GM_id FROM game_stories '
-                                        f'WHERE id = (SELECT id FROM game_stories '
-                                        f'WHERE id_group = "{group}" AND '
-                                        f'password = "{password}")'
-                                        f')'])[0][0]
+        # check_GM = con.work_with_MySQL([f'SELECT user_id FROM users '
+        #                                 f'WHERE id = (SELECT GM_id FROM game_stories '
+        #                                 f'WHERE id = (SELECT id FROM game_stories '
+        #                                 f'WHERE id_group = "{group}" AND '
+        #                                 f'password = "{password}")'
+        #                                 f')'])[0][0]
+        check_GM = l_con.work_with_SQLite([f'SELECT user_id FROM users '
+                                           f'WHERE id = (SELECT GM_id FROM game_stories '
+                                           f'WHERE id = (SELECT id FROM game_stories '
+                                           f'WHERE id_group = "{group}" AND '
+                                           f'password = "{password}")'
+                                           f')'])[0][0]
     except IndexError:
         check_GM = -1
 
     try:
-        check_user = con.work_with_MySQL([f'SELECT user_id FROM users '
-                                          f'WHERE id = (SELECT player_id FROM players_stories '
-                                          f'WHERE id = (SELECT id FROM game_stories '
-                                          f'WHERE id_group = "{group}" AND '
-                                          f'password = "{password}")'
-                                          f')'])[0][0]
+        # check_user = con.work_with_MySQL([f'SELECT user_id FROM users '
+        #                                   f'WHERE id = (SELECT player_id FROM players_stories '
+        #                                   f'WHERE id = (SELECT id FROM game_stories '
+        #                                   f'WHERE id_group = "{group}" AND '
+        #                                   f'password = "{password}")'
+        #                                   f')'])[0][0]
+        check_user = l_con.work_with_SQLite([f'SELECT user_id FROM users '
+                                             f'WHERE id = (SELECT player_id FROM players_stories '
+                                             f'WHERE id = (SELECT id FROM game_stories '
+                                             f'WHERE id_group = "{group}" AND '
+                                             f'password = "{password}")'
+                                             f')'])[0][0]
     except IndexError:
         check_user = -1
 
-    is_group = con.work_with_MySQL([f'SELECT id FROM game_stories WHERE id_group="{group}" AND password="{password}"'])
+    # is_group = con.work_with_MySQL(
+    #     [f'SELECT id FROM game_stories WHERE id_group="{group}" AND password="{password}"'])
+    is_group = l_con.work_with_SQLite(
+        [f'SELECT id FROM game_stories WHERE id_group="{group}" AND password="{password}"'])
 
     if (message.from_user.id != int(check_GM)) and (message.from_user.id != int(check_user)) and is_group:
         expire_date = datetime.now() + timedelta(days=1)
@@ -75,11 +93,16 @@ async def linc_group_check(message: types.Message, state: FSMContext):
                              reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
                                                                                 call_back=['start'])
                              )
-        con.work_with_MySQL([f'INSERT INTO players_stories (player_id, story_id) '
-                             f'VALUES ('
-                             f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-                             f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
-                             f')'])
+        # con.work_with_MySQL([f'INSERT INTO players_stories (player_id, story_id) '
+        #                      f'VALUES ('
+        #                      f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
+        #                      f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
+        #                      f')'])
+        l_con.work_with_SQLite([f'INSERT INTO players_stories (player_id, story_id) '
+                                f'VALUES ('
+                                f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
+                                f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
+                                f')'])
     elif (message.from_user.id == int(check_GM)) or (message.from_user.id == int(check_user)):
         await message.answer('Вы уже являетесь участником этой компании!',
                              reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
