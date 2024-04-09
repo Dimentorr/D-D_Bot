@@ -4,7 +4,8 @@ from Tools.SQLiteTools import Connection
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path='.env')
+
 
 def create_table(is_mysql=True):
     if is_mysql:

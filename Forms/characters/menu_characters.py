@@ -5,16 +5,18 @@ from States import states_create_character
 
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
+from Tools.JsonTools import CatalogJson
 from Tools.MySqlTools import Connection
 from Tools.SQLiteTools import Connection as LiteConnection
 
 import os
 from dotenv import load_dotenv
 
+GoogleTools = GoogleTools()
+
 load_dotenv()
 
 BotTools = Tools()
-GoogleTools = GoogleTools()
 # con = Connection(host=env.read_json_data('DB_host'),
 #                  port=env.read_json_data('DB_port'),
 #                  database_name=env.read_json_data('DB_database'),

@@ -27,7 +27,7 @@ from asyncio import new_event_loop, set_event_loop
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path='.env')
 
 set_event_loop(new_event_loop())
 

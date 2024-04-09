@@ -12,7 +12,7 @@ import pyro
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path='.env')
 
 BotTools = Tools()
 # con = Connection(host=env.read_json_data('DB_host'),

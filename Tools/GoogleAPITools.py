@@ -1,5 +1,4 @@
 import base64
-import os
 from email.mime.text import MIMEText
 
 from google.oauth2.credentials import Credentials
@@ -10,8 +9,7 @@ from googleapiclient.discovery import build
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
+load_dotenv(dotenv_path='.env')
 
 
 class GoogleTools:
