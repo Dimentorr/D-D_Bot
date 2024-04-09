@@ -13,4 +13,6 @@ google_api_key="YOUR_API_KEY",
 google_api_service_key="YOUR_SERVICE_API_KEY",
 google_mail_sender="MAIL_FROM_SERVICE_ACCOUNT",
 google_api_client_secret="PATH_FROM_client_secret.json",
+google_api_path_credential="YOUR_PATH_credential.json",
+google_api_path_token="YOUR_PATH_token.json",
 path_sqlite_db="YOUR_PATH"
