@@ -1,7 +1,6 @@
 import asyncio
 
 from Tools.MySqlTools import Connection
-from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
 from Tools.SQLiteTools import Connection as LiteConnection
@@ -25,26 +24,25 @@ from SQL import users, characters_list, game_story, verify, selected_characters
 
 from asyncio import new_event_loop, set_event_loop
 
-from aiogram.client.session.aiohttp import AiohttpSession
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 set_event_loop(new_event_loop())
 
 BotTools = Tools()
 GoogleTools = GoogleTools()
-env = CatalogJson(name='file/json/environment.json')
-# session = AiohttpSession(proxy='http://proxy.server:3128')
-# bot = Bot(token=env.read_json_data('TOKEN'), session=session)
-bot = Bot(token=env.read_json_data('TOKEN'))
+bot = Bot(token=os.getenv('TOKEN'))
 dp = Dispatcher()
 
 
-con = Connection(host=env.read_json_data('DB_host'),
-                 port=env.read_json_data('DB_port'),
-                 database_name=env.read_json_data('DB_database'),
-                 user=env.read_json_data('DB_user'),
-                 password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path='file/db/bot_base.db')
+# con = Connection(host=os.getenv('DB_host'),
+#                  port=os.getenv('DB_port'),
+#                  database_name=os.getenv('DB_database'),
+#                  user=os.getenv('DB_user'),
+#                  password=os.getenv('DB_password'))
+l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 @dp.callback_query(F.data == 'start')
@@ -159,7 +157,7 @@ dp.callback_query.register(supergroup_menu.supergroup_check_list_characters,
 # ----------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    if int(env.read_json_data('create_table')):
+    if int(os.getenv('create_table')):
         users.create_table(is_mysql=False)
         verify.create_table(is_mysql=False)
         characters_list.create_table(is_mysql=False)

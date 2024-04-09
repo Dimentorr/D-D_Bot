@@ -1,12 +1,13 @@
 import pyrogram
 from pyrogram import Client
 
-from Tools.JsonTools import CatalogJson
+import os
+from dotenv import load_dotenv
 
-env = CatalogJson(name='file/json/environment.json')
+load_dotenv()
 
-api_id = env.read_json_data('api_id_pyrogram')
-api_hash = env.read_json_data('api_hash_pyrogram')
+api_id = os.getenv('api_id_pyrogram')
+api_hash = os.getenv('api_hash_pyrogram')
 
 
 def set_privileges(invite=False):

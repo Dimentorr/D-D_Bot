@@ -1,19 +1,21 @@
 import mysql.connector
 from Tools.SQLiteTools import Connection
-from Tools.JsonTools import CatalogJson
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def create_table(is_mysql=True):
     if is_mysql:
-        env = CatalogJson(name='file/json/environment.json')
-
         try:
             with mysql.connector.connect(
-                    host=env.read_json_data('DB_host'),
-                    port=env.read_json_data('DB_port'),
-                    database=env.read_json_data('DB_database'),
-                    user=env.read_json_data('DB_user'),
-                    password=env.read_json_data('DB_password')
+                    host=os.getenv('DB_host'),
+                    port=os.getenv('DB_port'),
+                    database=os.getenv('DB_database'),
+                    user=os.getenv('DB_user'),
+                    password=os.getenv('DB_password')
             ) as connection:
                 query_main_info_character = (f'CREATE TABLE IF NOT EXISTS characters_list('
                                              f'id int not null primary key auto_increment,'
@@ -36,7 +38,7 @@ def create_table(is_mysql=True):
             print(err_text)
             return 0
     else:
-        con = Connection(path='file/db/bot_base.db')
+        con = Connection(path=os.getenv('path_sqlite_db'))
         try:
             con.work_with_SQLite(query=[f'CREATE TABLE IF NOT EXISTS characters_list('
                                         f'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,'

@@ -5,19 +5,22 @@ from States import states_create_character
 
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
-from Tools.JsonTools import CatalogJson
 from Tools.MySqlTools import Connection
 from Tools.SQLiteTools import Connection as LiteConnection
 
-GoogleTools = GoogleTools()
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 BotTools = Tools()
-env = CatalogJson(name='file/json/environment.json')
-con = Connection(host=env.read_json_data('DB_host'),
-                 port=env.read_json_data('DB_port'),
-                 database_name=env.read_json_data('DB_database'),
-                 user=env.read_json_data('DB_user'),
-                 password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path='file/db/bot_base.db')
+GoogleTools = GoogleTools()
+# con = Connection(host=env.read_json_data('DB_host'),
+#                  port=env.read_json_data('DB_port'),
+#                  database_name=env.read_json_data('DB_database'),
+#                  user=env.read_json_data('DB_user'),
+#                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 async def menu_characters(call: types.CallbackQuery):

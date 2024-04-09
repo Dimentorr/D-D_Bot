@@ -2,7 +2,6 @@ from aiogram import types
 from aiogram.fsm.context import FSMContext
 
 from Tools.MySqlTools import Connection
-from Tools.JsonTools import CatalogJson
 from Tools.BotTools import Tools
 from Tools.SQLiteTools import Connection as LiteConnection
 
@@ -10,14 +9,18 @@ from States import states_create_group
 
 import pyro
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 BotTools = Tools()
-env = CatalogJson(name='file/json/environment.json')
-con = Connection(host=env.read_json_data('DB_host'),
-                 port=env.read_json_data('DB_port'),
-                 database_name=env.read_json_data('DB_database'),
-                 user=env.read_json_data('DB_user'),
-                 password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path='file/db/bot_base.db')
+# con = Connection(host=env.read_json_data('DB_host'),
+#                  port=env.read_json_data('DB_port'),
+#                  database_name=env.read_json_data('DB_database'),
+#                  user=env.read_json_data('DB_user'),
+#                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 def get_username(call: types.CallbackQuery):
@@ -66,11 +69,11 @@ async def create_group_check(message: types.Message, state: FSMContext):
     name = data['name_group']
     password = data['password']
     if password == data['repeat_password']:
-        bot_name = env.read_json_data('BOT_NAME')
+        bot_name = os.getenv('BOT_NAME')
         username = message.from_user.username
         await message.answer('Подождите, группа создаётся...')
         try:
-            admin_is_gm = (f'@{username}' == env.read_json_data("ADMIN_USERNAME"))
+            admin_is_gm = (f'@{username}' == os.getenv("ADMIN_USERNAME"))
             id_group = await pyro.supergroup_create(title=name, bot_name=bot_name,
                                                     user_name=f'@{username}', admin_gm=admin_is_gm)
             # con.work_with_MySQL([f'INSERT INTO game_stories (GM_id, name_story, id_group, password) '

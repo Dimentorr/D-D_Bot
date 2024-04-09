@@ -12,15 +12,18 @@ from States import states_verifiction
 
 import random
 
+import os
+from dotenv import load_dotenv
+
 GoogleTools = GoogleTools()
+load_dotenv()
 BotTools = Tools()
-env = CatalogJson(name='file/json/environment.json')
-con = Connection(host=env.read_json_data('DB_host'),
-                 port=env.read_json_data('DB_port'),
-                 database_name=env.read_json_data('DB_database'),
-                 user=env.read_json_data('DB_user'),
-                 password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path='file/db/bot_base.db')
+# con = Connection(host=env.read_json_data('DB_host'),
+#                  port=env.read_json_data('DB_port'),
+#                  database_name=env.read_json_data('DB_database'),
+#                  user=env.read_json_data('DB_user'),
+#                  password=env.read_json_data('DB_password'))
+l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 def verify_code(gmail: str):

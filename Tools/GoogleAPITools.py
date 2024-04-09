@@ -2,26 +2,29 @@ import base64
 import os
 from email.mime.text import MIMEText
 
-from Tools.JsonTools import CatalogJson
-
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 
 class GoogleTools:
     def __init__(self):
-        self.env = CatalogJson(name='file/json/environment.json')
         self.SCOPES_GMAIL = ['https://www.googleapis.com/auth/gmail.send']
-        self.CLIENT_SECRET_FILE = self.env.read_json_data('google_api_client_secret')
-        self.sender = self.env.read_json_data('google_mail_sender')
-        self.API_KEY = self.env.read_json_data('google_api_service_key')
+        self.CLIENT_SECRET_FILE = os.getenv('google_api_client_secret')
+        self.sender = os.getenv('google_mail_sender')
+        self.API_KEY = os.getenv('google_api_service_key')
 
         self.SCOPES = ['https://www.googleapis.com/auth/drive',
                        'https://www.googleapis.com/auth/documents',
                        'https://www.googleapis.com/auth/drive.file']
-        self.SERVICE_ACCOUNT_FILE = 'file/json/credential.json'
+        self.SERVICE_ACCOUNT_FILE = os.getenv('google_api_path_credential')
         self.CRED_SERVICE = service_account.Credentials.from_service_account_file(
             self.SERVICE_ACCOUNT_FILE, scopes=self.SCOPES)
         self.creds_gmail = None
@@ -108,14 +111,14 @@ class GoogleTools:
             print('An error occurred: %s' % error)
 
     def gmail_send(self, to, text_message):
-        if os.path.exists('file/json/token.json'):
-            self.creds_gmail = Credentials.from_authorized_user_file('file/json/token.json')
+        if os.path.exists(os.getenv('google_api_path_token')):
+            self.creds_gmail = Credentials.from_authorized_user_file(os.getenv('google_api_path_token'))
         if not self.creds_gmail:
             flow = InstalledAppFlow.from_client_secrets_file(self.CLIENT_SECRET_FILE, self.SCOPES_GMAIL)
             self.creds_gmail = flow.run_local_server()
             # создасть токен подключения, сохранив все предоставленные выбранному аккаунту разрешения,
             # (если его(файла token.json) не было до этого)
-            with open("file/json/token.json", "w") as token:
+            with open(os.getenv('google_api_path_token'), "w") as token:
                 token.write(self.creds_gmail.to_json())
         with build('gmail', 'v1', credentials=self.creds_gmail) as service_gmail:
             message = self.create_message(self.sender, to, 'Verify', text_message)
