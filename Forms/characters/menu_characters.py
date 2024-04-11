@@ -40,9 +40,9 @@ async def menu_characters(call: types.CallbackQuery):
 
 async def list_characters(call: types.CallbackQuery):
     # ids = con.work_with_MySQL([f'SELECT id FROM characters_list WHERE user_id='
-    #                           f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])[0]
+    #                           f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])
     ids = l_con.work_with_SQLite([f'SELECT id FROM characters_list WHERE user_id='
-                                  f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])[0]
+                                  f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])
     if len(ids) == 0:
         await call.message.answer(f'У вас ещё нет созданных персонажей!',
                                   reply_markup=BotTools.construction_inline_keyboard(
