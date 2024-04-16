@@ -46,7 +46,8 @@ venv\Scripts\activate
 ```
 pip install -r requirements.txt
 ```
-- Теперь запустим pyro.py
+- Теперь запустим pyro.py для создания сессии
+> после запуска, (при отсутствии в корневом каталоге проекта файла my_account.session) в терминале поочерёдно появятся вопросы, на которые необходимо ответить, после чего появится файл my_account.session 
 ```
 python pyro.py
 ```
