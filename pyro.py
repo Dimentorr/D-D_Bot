@@ -10,6 +10,12 @@ api_id = os.getenv('api_id_pyrogram')
 api_hash = os.getenv('api_hash_pyrogram')
 
 
+def create_file_session():
+    app = Client("my_account", api_id, api_hash)
+    app.start()
+    app.stop()
+
+
 def set_privileges(invite=False):
     return pyrogram.types.ChatPrivileges(can_manage_chat=invite,
                                          can_delete_messages=True,
@@ -37,3 +43,6 @@ async def supergroup_create(title: str, bot_name: str, user_name: str, admin_gm=
     await app.stop()
     return chat_id
 
+
+if __name__ == '__main__':
+    create_file_session()
