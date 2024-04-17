@@ -5,6 +5,8 @@
    - [x] Привязка ранее созданых листов персонажей к игровой компании<br>
       (в супер-группе которой остальные участники компании могут получить доступ к нему) <br>
    - [ ] Напоминаний о времени проведения игры 
+   - [ ] Личный кабинет (изменение логина, пароля, список персонажей)
+   - [ ] Возможность генерации предыстории персонажа(возможно и сам лист персонажа) с помощью ChatGPT
 <br><br>
 Для запуска бота необходимо импортировать все фалы из репозитория, а так же создать в папке проекта дополнительные папки:
    - file/db
@@ -19,12 +21,12 @@
    - DB_user=root(заполнять при наличии MySQL базы, в ином случаи можно не трогать)
    - DB_password=(заполнять при наличии MySQL базы, в ином случаи можно не трогать)
    - create_table=1/0 (1 - необходимо создать таблицы в базе данных/0 - пропустить шаг создания таблиц, при запуске бота)
-   - api_id_pyrogram=(узнать можно перейдя по ссылке https://my.telegram.org/apps)
-   - api_hash_pyrogram=(узнать можно перейдя по ссылке https://my.telegram.org/apps)
-   - google_api_key=(необходимо авторизоваться и создать проект на https://console.cloud.google.com/)
-   - google_api_service_key=(необходимо авторизоваться и создать проект на https://console.cloud.google.com/)
-   - google_mail_sender=(email сервисного аккаунта из https://console.cloud.google.com/)
-   - google_api_client_secret=file/json/client_secret.json(после создания проекта на https://console.cloud.google.com/ на вкладке Credentails создать OAuth 2.0 Client IDs)
+   - api_id_pyrogram=(узнать можно перейдя по <a href="https://my.telegram.org/apps">ссылке</a>)
+   - api_hash_pyrogram=(узнать можно перейдя по <a href="https://my.telegram.org/apps">ссылке</a>)
+   - google_api_key=(необходимо авторизоваться и создать проект в <a href="https://console.cloud.google.com/">Google cloud</a>)
+   - google_api_service_key=(необходимо авторизоваться и создать проект в <a href="https://console.cloud.google.com/">Google cloud</a>)
+   - google_mail_sender=(email сервисного аккаунта в <a href="https://console.cloud.google.com/">Google cloud</a>)
+   - google_api_client_secret=file/json/client_secret.json(после создания проекта в <a href="https://console.cloud.google.com/">Google cloud</a>) на вкладке Credentails создать OAuth 2.0 Client IDs)
    - google_api_path_credential=file/json/credential.json (после создания сервисного аккаунта переходим в его редактирование и во вкладке keys выбираем add key->json)
    - google_api_path_token=file/json/token.json (создастся, при отсутствии, но в этом случаи необходимо будет подтвердить это действие со своего браузера)
    - path_sqlite_db=file/db/bot_base.db (путь до SQLite базы)
