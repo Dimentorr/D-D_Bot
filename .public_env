@@ -16,3 +16,7 @@ google_api_client_secret=PATH_FROM_client_secret.json
 google_api_path_credential=YOUR_PATH_credential.json
 google_api_path_token=YOUR_PATH_token.json
 path_sqlite_db=YOUR_PATH
+YOOMONEY_CLIENT_ID=YOUR_CLIENT_ID
+YOOMONEY_REDIRECT_URI=YOUR_REDIRECT_URI
+YOOMONEY_TOKEN=YOUR_TOKEN
+YOOMONEY_RECEIVER=YOUR_RECEIVER
