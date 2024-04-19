@@ -163,7 +163,7 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
             await bot.send_message(chat_id=call.message.chat.id,
                                    text=f'Игрок '
                                         f'|{call.data.split("-")[1].split(":")[0]}| получил права на просмотр листа '
-                                        f'персонажа - |{name_character}|',
+                                        f'персонажа - |{name_character[0][0]}|',
                                    reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
                                        name_buttons=['Назад'],
                                        cd=['menu']
