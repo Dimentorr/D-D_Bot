@@ -140,8 +140,8 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
     if not mail_user:
         await bot.send_message(chat_id=call.message.chat.id,
                                text='Для этого тебе необходимо пройти верефикацию!\n'
-                                    'Для этого перейдите в личную беседу со мной <|@PSMagicBot|>'
-                                    ' и в основном меню выберите <|Верификация|>',
+                                    'Для этого перейдите в личную беседу со мной |@PSMagicBot|'
+                                    ' и в основном меню выберите |Верификация|',
                                reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
                                    name_buttons=['Назад'],
                                    cd=['menu']
@@ -162,8 +162,8 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
                                                      f'WHERE id = {call.data.split(":")[1]}'])
             await bot.send_message(chat_id=call.message.chat.id,
                                    text=f'Игрок '
-                                        f'<|{call.data.split("-")[1].split(":")[0]}|> получил права на просмотр листа '
-                                        f'персонажа - <|{name_character}|>',
+                                        f'|{call.data.split("-")[1].split(":")[0]}| получил права на просмотр листа '
+                                        f'персонажа - |{name_character}|',
                                    reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
                                        name_buttons=['Назад'],
                                        cd=['menu']
@@ -171,7 +171,7 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
         else:
             await bot.send_message(chat_id=call.message.chat.id,
                                    text=f'Игрок '
-                                        f'<|{call.data.split("-")[1].split(":")[0]}|> '
+                                        f'|{call.data.split("-")[1].split(":")[0]}| '
                                         f'ещё не привязал своего персонажа к игре!',
                                    reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
                                        name_buttons=['Назад'],
@@ -187,10 +187,19 @@ async def find_list(group_id: str):
     #                          f'SELECT character_id FROM selected_characters WHERE story_id={group_id}'
     #                          f');']))
     characters_name_link = (
-        l_con.work_with_SQLite([f'SELECT name_character, link FROM characters_list '
-                                f'WHERE id=('
-                                f'SELECT character_id FROM selected_characters WHERE story_id={group_id}'
-                                f');']))
+        l_con.work_with_SQLite([[f'CREATE TEMPORARY TABLE characters_id_in_games AS '
+                                 f'SELECT '
+                                 f'selected_characters.story_id,'
+                                 f'selected_characters.character_id, '
+                                 f'selected_characters.player_id,'
+                                 f'characters_list.name_character,'
+                                 f'characters_list.link '
+                                 f'FROM '
+                                 f'selected_characters '
+                                 f'JOIN characters_list '
+                                 f'ON selected_characters.character_id = characters_list.id;'],
+                               [f'SELECT name_character,link FROM characters_id_in_games '
+                                f'WHERE story_id={group_id};']]))
 
     if len(characters_name_link) == 0:
         return []

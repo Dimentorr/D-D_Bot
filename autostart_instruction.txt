@@ -1,0 +1,34 @@
+In main.py add first line -> #!/usr/bin/python3
+
+cd /lib/systemd/system/bot.service
+
+sudo nano bot.service
+||||||||||||||||||||||
+vvvvvvvvvvvvvvvvvvvvvv
+[Unit]
+Description=Start D20_Bot
+After=multi-user.target
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=dimentor
+WorkingDirectory=/home/dimentor/bot/
+ExecStart=/usr/bin/python3 /home/dimentor/bot/main.py
+
+[Install]
+WantedBy=multi-user.target
+
+
+Ctrl+O -> Enter
+
+chmod ugo+rwx bot.service
+
+sudo systemctl daemon-reload
+
+sudo systemctl enable bot.service
+
+sudo systemctl start bot.service
+
+sudo systemctl status bot.service
