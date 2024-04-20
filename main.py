@@ -10,8 +10,10 @@ from Forms.game_room import main_menu, connect_from, create_new
 from Forms.characters import menu_characters, choice_character_for_game
 from Forms.verefication import verification
 from Forms.supergroup import supergroup_menu
+from Forms.pay import donation
 
-from States import states_reg_log, states_connect_to, states_create_group, states_create_character, states_verifiction
+from States import (states_reg_log, states_connect_to, states_create_group, states_create_character, states_verifiction,
+                    states_donate)
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery
@@ -51,8 +53,10 @@ async def start_bot(call: CallbackQuery, state: FSMContext):
         await state.clear()
         # if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {call.from_user.id}']):
         if l_con.work_with_SQLite([f'SELECT id FROM users WHERE user_id = {call.from_user.id}']):
-            buts = ['Персонажи', 'Компании']
-            call_backs = ['Character', 'Story']
+            buts = [['Персонажи', 'Компании'],
+                    ['Donate']]
+            call_backs = [['Character', 'Story'],
+                          ['donate']]
             query_log = ([f'SELECT gmail FROM verify '
                           f'WHERE user_id = '
                           f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
@@ -60,7 +64,18 @@ async def start_bot(call: CallbackQuery, state: FSMContext):
             if not l_con.work_with_SQLite(query_log):
                 buts.append('Верификация')
                 call_backs.append('verify')
-            await call.message.answer(f'Добро пожаловать в D&D бота!\n'
+            await call.message.answer(f'Привет!\n'
+                                      f'Этот бот предназначен для:\n'
+                                      f'1. хранения листов персонажей игроков\n'
+                                      f'2. создания мастером игры групп для общения с игроками\n'
+                                      f'(там же все участники компании смогут получить права доступа для '
+                                      f'просмотра листов персонажей друг-друга)\n'
+                                      f'3. Некоторые функции со временем также появятся (например:'
+                                      f' в планах добавить возможность установить время для игры, по которому '
+                                      f'бот в личные сообщения будет периодически напоминать об предстоящей игре)\n\n'
+                                      f'P.S. По поводу новых функций бота можно написать сюда - @lie_of_life\n\n'
+                                      f'P.S.S. Так же вы можете поддержать меня и помочь развитию проекта перейдя по '
+                                      f'кнопке "Donate"\n\n'
                                       f'Пожалуйста, выберите интерисующий вас пункт',
                                       reply_markup=BotTools.construction_inline_keyboard(buttons=buts,
                                                                                          call_back=call_backs))
@@ -75,20 +90,12 @@ async def start_bot(call: CallbackQuery, state: FSMContext):
 async def start_bot(message: Message, state: FSMContext):
     if message.chat.type == 'private':
         await state.clear()
-        await message.answer('Этот бот предназначен для:\n'
-                             '1. хранения листов персонажей игроков\n'
-                             '2. создания мастером игры групп для общения с игроками\n'
-                             '(там же все участники компании смогут получить права доступа для '
-                             'просмотра листов персонажей друг-друга)\n'
-                             '3. Некоторые функции со временем также появятся (например:'
-                             ' в планах добавить возможность установить время для игры, по которому '
-                             'бот в личные сообщения будет периодически напоминать об предстоящей игре)'
-                             '\n\n'
-                             'P.S. По поводу новых функций бота можно написать сюда - @lie_of_life')
         # if con.work_with_MySQL([f'SELECT id FROM users WHERE user_id = {message.from_user.id}']):
         if l_con.work_with_SQLite([f'SELECT id FROM users WHERE user_id = {message.from_user.id}']):
-            buts = ['Персонажи', 'Компании']
-            call_backs = ['Character', 'Story']
+            buts = [['Персонажи', 'Компании'],
+                    ['Donate']]
+            call_backs = [['Character', 'Story'],
+                          ['donate']]
             query_log = ([f'SELECT gmail FROM verify '
                           f'WHERE user_id = '
                           f'(SELECT id FROM users WHERE user_id = {message.from_user.id})'])
@@ -96,7 +103,18 @@ async def start_bot(message: Message, state: FSMContext):
             if not l_con.work_with_SQLite(query_log):
                 buts.append('Верификация')
                 call_backs.append('verify')
-            await message.answer(f'Добро пожаловать в D&D бота!\n'
+            await message.answer(f'Привет!\n'
+                                 f'Этот бот предназначен для:\n'
+                                 f'1. хранения листов персонажей игроков\n'
+                                 f'2. создания мастером игры групп для общения с игроками\n'
+                                 f'(там же все участники компании смогут получить права доступа для '
+                                 f'просмотра листов персонажей друг-друга)\n'
+                                 f'3. Некоторые функции со временем также появятся (например:'
+                                 f' в планах добавить возможность установить время для игры, по которому '
+                                 f'бот в личные сообщения будет периодически напоминать об предстоящей игре)\n\n'
+                                 f'P.S. По поводу новых функций бота можно написать сюда - @lie_of_life\n\n'
+                                 f'P.S.S. Так же вы можете поддержать меня и помочь развитию проекта перейдя по кнопке'
+                                 f' "Donate"\n\n'
                                  f'Пожалуйста, выберите интерисующий вас пункт',
                                  reply_markup=BotTools.construction_inline_keyboard(buttons=buts,
                                                                                     call_back=call_backs))
@@ -130,6 +148,10 @@ dp.callback_query.register(main_menu.first_menu_game_function, F.data == 'Story'
 dp.callback_query.register(connect_from.linc_group_id, F.data == 'connect_to')
 dp.message.register(connect_from.linc_group_password, states_connect_to.StepsConnectTo.id)
 dp.message.register(connect_from.linc_group_check, states_connect_to.StepsConnectTo.password)
+
+dp.callback_query.register(donation.info, F.data == 'donate')
+dp.callback_query.register(donation.input_cost, F.data == 'get_info')
+dp.message.register(donation.check_data, states_donate.StepsDonate.cost)
 # ----------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------STEPS CREATE GAME---------------------------------------------------------
 dp.callback_query.register(create_new.create_group_name, F.data == 'create_new_game')

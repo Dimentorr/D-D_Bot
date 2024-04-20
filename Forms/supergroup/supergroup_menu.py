@@ -160,9 +160,11 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
             #                                      f'WHERE id = {call.data.split(":")[1]}'])
             name_character = l_con.work_with_SQLite([f'SELECT name_character FROM characters_list '
                                                      f'WHERE id = {call.data.split(":")[1]}'])
+            name_user = l_con.work_with_SQLite(
+                [f'SELECT name_user FROM users WHERE user_id = "{call.from_user.id}"'])[0][0]
             await bot.send_message(chat_id=call.message.chat.id,
                                    text=f'Игрок '
-                                        f'|{call.data.split("-")[1].split(":")[0]}| получил права на просмотр листа '
+                                        f'|{name_user}| получил права на просмотр листа '
                                         f'персонажа - |{name_character[0][0]}|',
                                    reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
                                        name_buttons=['Назад'],
