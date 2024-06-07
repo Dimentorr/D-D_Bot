@@ -101,6 +101,7 @@ class GoogleTools:
         message['subject'] = subject
         return {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
+
     def send_message(self, service, user_id, message):
         try:
             message = service.users().messages().send(userId=user_id, body=message).execute()

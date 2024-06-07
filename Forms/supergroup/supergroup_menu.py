@@ -1,22 +1,16 @@
 from aiogram import types
+from aiogram.fsm.context import FSMContext
 
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
-from Tools.MySqlTools import Connection
-from Tools.SQLiteTools import Connection as LiteConnection
+from SQL.Tables import MySQLSession, Characters, Users, GameStories, PlayersStories, SelectedCharacters, Verify
+from sqlalchemy import and_
 
-import os
 from dotenv import load_dotenv
 
 GoogleTools = GoogleTools()
 load_dotenv(dotenv_path='.env')
 BotTools = Tools()
-# con = Connection(host=env.read_json_data('DB_host'),
-#                  port=env.read_json_data('DB_port'),
-#                  database_name=env.read_json_data('DB_database'),
-#                  user=env.read_json_data('DB_user'),
-#                  password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 async def group_menu_call(call: types.CallbackQuery):
@@ -43,100 +37,67 @@ async def group_menu_mess(message: types.Message):
 
 
 def check_verify(user_id: str | int):
-    # mail = con.work_with_MySQL([f'Select gmail FROM verify '
-    #                             f'WHERE user_id = '
-    #                             f'(Select id FROM users '
-    #                             f'WHERE user_id = {user_id})'])
-    mail = l_con.work_with_SQLite([f'Select gmail FROM verify '
-                                   f'WHERE user_id = '
-                                   f'(Select id FROM users '
-                                   f'WHERE user_id = {user_id})'])
-    if mail:
-        return mail[0][0]
-    else:
-        return None
+    with MySQLSession.begin() as session:
+        if mail := session.query(Verify.gmail).filter_by(user_id=user_id).first():
+            return mail[0]
+        else:
+            return None
 
 
 async def start_get_permissions(call: types.CallbackQuery):
     from main import bot
-    try:
-        # group_id = con.work_with_MySQL(
-        # [f'SELECT id FROM game_stories WHERE id_group="{call.message.chat.id}";'])[0][0]
-        group_id = l_con.work_with_SQLite(
-            [f'SELECT id FROM game_stories WHERE id_group="{call.message.chat.id}";'])[0][0]
-    except Exception as err:
-        print(f'supergroup start_get_permissions - {err}')
-        await bot.send_message(chat_id=call.message.chat.id,
-                               text='Компания не найдена в моей базе данных!',
-                               reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                   name_buttons=['Назад'],
-                                   cd=['menu']
-                               ))
-        await call.message.delete()
-        return 0
-    # ids_users = [i[0] for i in
-    #              con.work_with_MySQL([f'SELECT player_id FROM players_stories WHERE story_id={group_id};'])]
-    ids_users = [i[0] for i in
-                 l_con.work_with_SQLite([f'SELECT player_id FROM players_stories WHERE story_id={group_id};'])]
-    if len(ids_users) == 0:
-        await bot.send_message(chat_id=call.message.chat.id,
-                               text='В данной компании ещё нет игроков!',
-                               reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                   name_buttons=['Назад'],
-                                   cd=['menu']
-                               ))
-        await call.message.delete()
-        return 0
-
-    data_buttons = []
-    for player_id in ids_users:
-        # character = con.work_with_temporary_on_MySQL([[f'CREATE TEMPORARY TABLE user_character_id AS '
-        #                                                f'SELECT users.id as user_id, '
-        #                                                f'users.name_user as user, '
-        #                                                f'characters_list.id as character_id, '
-        #                                                f'selected_characters.story_id as story_id '
-        #                                                f'FROM '
-        #                                                f'selected_characters '
-        #                                                f'INNER JOIN characters_list '
-        #                                                f'ON characters_list.id = selected_characters.character_id '
-        #                                                f'INNER JOIN users '
-        #                                                f'ON users.id = selected_characters.player_id;'],
-        #                                               [f'SELECT user, character_id '
-        #                                                f'FROM user_character_id '
-        #                                                f'WHERE '
-        #                                                f'story_id = {group_id} AND user_id = {player_id};']])
-        character = l_con.work_with_SQLite([[f'CREATE TEMPORARY TABLE user_character_id AS '
-                                                       f'SELECT users.id as user_id, '
-                                                       f'users.name_user as user, '
-                                                       f'characters_list.id as character_id, '
-                                                       f'selected_characters.story_id as story_id '
-                                                       f'FROM '
-                                                       f'selected_characters '
-                                                       f'INNER JOIN characters_list '
-                                                       f'ON characters_list.id = selected_characters.character_id '
-                                                       f'INNER JOIN users '
-                                                       f'ON users.id = selected_characters.player_id;'],
-                                                      [f'SELECT user, character_id '
-                                                       f'FROM user_character_id '
-                                                       f'WHERE '
-                                                       f'story_id = {group_id} AND user_id = {player_id};']])
-        if character:
-            data_buttons.append(f'{character[0][0]}:{character[0][1]}')
+    group_id = call.message.chat.id
+    with MySQLSession.begin() as session:
+        if not session.query(GameStories.name).filter_by(id=group_id).first():
+            print(f'group {group_id} not found!')
+            await bot.send_message(chat_id=call.message.chat.id,
+                                   text='Компания не найдена в моей базе данных!',
+                                   reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                       name_buttons=['Назад'],
+                                       cd=['menu']
+                                   ))
+            await call.message.delete()
+            return 0
         else:
-            # name = con.work_with_MySQL([f'SELECT name_user FROM users WHERE id = {player_id};'])[0][0]
-            name = l_con.work_with_SQLite([f'SELECT name_user FROM users WHERE id = {player_id};'])[0][0]
-            data_buttons.append(f'{name}:{-1}')
-    await bot.send_message(chat_id=call.message.chat.id,
-                           text='Вот список всех Игроков, выберите того, доступ к чьему листу вы хотите получить:',
-                           reply_markup=BotTools.construction_inline_keyboard_for_choice(
-                               name_buttons=data_buttons,
-                               start_cd='choice_player',
-                               private=False))
+            ids_users = [i[0] for i in session.query(PlayersStories.player_id).filter(
+                PlayersStories.story_id == group_id).all()]
+            if len(ids_users) == 0:
+                await bot.send_message(chat_id=call.message.chat.id,
+                                       text='В данной компании ещё нет игроков!',
+                                       reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                           name_buttons=['Назад'],
+                                           cd=['menu']
+                                       ))
+                await call.message.delete()
+                return 0
+
+            data_buttons = []
+            print(ids_users)
+            print(len(ids_users))
+            for player_id in ids_users:
+                player_name = session.query(Users.firstname).filter(Users.id == player_id).first()[0]
+                if user_id := session.query(SelectedCharacters.player_id).filter(
+                    and_(SelectedCharacters.story_id == group_id,
+                         SelectedCharacters.player_id == player_id,
+                         )
+                ).all():
+                    print(f'привязал персонажа - {player_name}')
+                    data_buttons.append(f'{player_name}:{user_id[0][0]}')
+                else:
+                    print(f'не привязал персонажа - {player_name}')
+                    data_buttons.append(f'{player_name}:-1')
+            await bot.send_message(chat_id=call.message.chat.id,
+                                   text='Вот список всех Игроков, выберите того, доступ к чьему листу вы хотите получить:',
+                                   reply_markup=BotTools.construction_inline_keyboard_for_choice(
+                                       name_buttons=data_buttons,
+                                       start_cd='choice_player',
+                                       private=False))
 
 
 async def get_permissions_list_with_players_and_links_on_characters(call: types.CallbackQuery):
     from main import bot
-    mail_user = check_verify(call.from_user.id)
+    user_id = call.from_user.id
+    mail_user = check_verify(user_id)
     if not mail_user:
         await bot.send_message(chat_id=call.message.chat.id,
                                text='Для этого тебе необходимо пройти верефикацию!\n'
@@ -149,115 +110,91 @@ async def get_permissions_list_with_players_and_links_on_characters(call: types.
         await call.message.delete()
         return 0
     else:
-        if int(call.data.split(":")[1]) > 0:
-            # GoogleTools.get_permissions(file_id=con.work_with_MySQL([f'SELECT file_id FROM characters_list '
-            #                                                         f'WHERE id = {call.data.split(":")[1]}'][0][0]),
-            #                             email=mail_user)
-            GoogleTools.get_permissions(file_id=l_con.work_with_SQLite([f'SELECT file_id FROM characters_list '
-                                                                        f'WHERE id = {call.data.split(":")[1]}'])[0][0],
-                                        email=mail_user)
-            # name_character = con.work_with_MySQL([f'SELECT name_character FROM characters_list '
-            #                                      f'WHERE id = {call.data.split(":")[1]}'])
-            name_character = l_con.work_with_SQLite([f'SELECT name_character FROM characters_list '
-                                                     f'WHERE id = {call.data.split(":")[1]}'])
-            name_user = l_con.work_with_SQLite(
-                [f'SELECT name_user FROM users WHERE user_id = "{call.from_user.id}"'])[0][0]
-            await bot.send_message(chat_id=call.message.chat.id,
-                                   text=f'Игрок '
-                                        f'|{name_user}| получил права на просмотр листа '
-                                        f'персонажа - |{name_character[0][0]}|',
-                                   reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                       name_buttons=['Назад'],
-                                       cd=['menu']
-                                   ))
-        else:
-            await bot.send_message(chat_id=call.message.chat.id,
-                                   text=f'Игрок '
-                                        f'|{call.data.split("-")[1].split(":")[0]}| '
-                                        f'ещё не привязал своего персонажа к игре!',
-                                   reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                       name_buttons=['Назад'],
-                                       cd=['menu']))
+        chat_id = call.message.chat.id
+        with MySQLSession.begin() as session:
+            # owner_character = session.query(Users.id).filter
+            print(call.data)
+            player_id = call.data.split(':')[1]
+            if character_id := session.query(SelectedCharacters.player_id, SelectedCharacters.character_id).filter(
+                and_(SelectedCharacters.story_id == call.message.chat.id,
+                     SelectedCharacters.player_id == player_id)
+            ).all():
+                GoogleTools.get_permissions(file_id=character_id[0][1],
+                                            email=mail_user)
+                name_character_user_id = session.query(Characters.name, Characters.user_id).filter(
+                    Characters.id == character_id[0][1]).first()
+                name_user = session.query(Users.firstname).filter(Users.id == user_id).first()[0]
+                await bot.send_message(chat_id=chat_id,
+                                       text=f'Игрок '
+                                            f'|{name_user}| получил права на просмотр листа '
+                                            f'персонажа - |{name_character_user_id[0]}|',
+                                       reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                           name_buttons=['Назад'],
+                                           cd=['menu']
+                                       ))
+            else:
+                await bot.send_message(chat_id=chat_id,
+                                       text=f'Игрок '
+                                            f'|{call.data.split("-")[1].split(":")[0]}| '
+                                            f'ещё не привязал своего персонажа к игре!',
+                                       reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                           name_buttons=['Назад'],
+                                           cd=['menu']))
         await call.message.delete()
 
 
 async def find_list(group_id: str):
-
-    # characters_name_link = (
-    #     con.work_with_MySQL([f'SELECT name_character, link FROM characters_list '
-    #                          f'WHERE id=('
-    #                          f'SELECT character_id FROM selected_characters WHERE story_id={group_id}'
-    #                          f');']))
-    characters_name_link = (
-        l_con.work_with_SQLite([[f'CREATE TEMPORARY TABLE characters_id_in_games AS '
-                                 f'SELECT '
-                                 f'selected_characters.story_id,'
-                                 f'selected_characters.character_id, '
-                                 f'selected_characters.player_id,'
-                                 f'characters_list.name_character,'
-                                 f'characters_list.link '
-                                 f'FROM '
-                                 f'selected_characters '
-                                 f'JOIN characters_list '
-                                 f'ON selected_characters.character_id = characters_list.id;'],
-                               [f'SELECT name_character,link FROM characters_id_in_games '
-                                f'WHERE story_id={group_id};']]))
-
-    if len(characters_name_link) == 0:
-        return []
-    else:
+    characters_name_link = []
+    with MySQLSession.begin() as session:
+        characters_ids = session.query(SelectedCharacters.character_id).filter(
+            SelectedCharacters.story_id == group_id).all()
+        for i in characters_ids:
+            character = session.query(Characters.name, Characters.link).filter(Characters.id == i[0]).first()
+            characters_name_link.append([character[0], character[1]])
         return characters_name_link
 
 
 async def supergroup_check_list_characters(call: types.CallbackQuery):
     from main import bot
-    try:
-        # group_id = con.work_with_MySQL(
-    # [f'SELECT id FROM game_stories WHERE id_group="{call.message.chat.id}";'])[0][0]
-        group_id = l_con.work_with_SQLite([
-            f'SELECT id FROM game_stories WHERE id_group="{call.message.chat.id}";'])[0][0]
-    except Exception as err:
-        print(f'supergroup start_get_permissions - {err}')
-        await bot.send_message(chat_id=call.message.chat.id,
-                               text='Компания не найдена в моей базе данных!',
-                               reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                   name_buttons=['Назад'],
-                                   cd=['menu']
-                               ))
-        await call.message.delete()
-        return 0
-    # ids_users = [i[0] for i in
-    #              con.work_with_MySQL([f'SELECT player_id FROM players_stories WHERE story_id={group_id};'])]
-    ids_users = [i[0] for i in
-                 l_con.work_with_SQLite([f'SELECT player_id FROM players_stories WHERE story_id={group_id};'])]
-    if len(ids_users) == 0:
-        await bot.send_message(chat_id=call.message.chat.id,
-                               text='В данной компании ещё нет игроков!',
-                               reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                   name_buttons=['Назад'],
-                                   cd=['menu']
-                               ))
-        await call.message.delete()
-        return 0
-
-    list_characters = await find_list(group_id)
-    if list_characters:
-        names = []
-        links = []
-        for i in list_characters:
-            names.append(i[0])
-            links.append(i[1])
-        await bot.send_message(chat_id=call.message.chat.id,
-                               text='Вот список всех Персонажей, выберите того, чей лист вы хотите посмотреть',
-                               reply_markup=BotTools.construction_inline_keyboard_with_link(
-                                   list_name=names,
-                                   list_link=links,
-                                   private=False))
-    else:
-        await bot.send_message(chat_id=call.message.chat.id,
-                               text='Никто из игроков ещё не привязал своего персонажа к этой игре!',
-                               reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
-                                   name_buttons=['Назад'],
-                                   cd=['menu']
-                               ))
-    await call.message.delete()
+    with MySQLSession.begin() as session:
+        if group_id := session.query(GameStories.id).filter(GameStories.id == call.message.chat.id).first():
+            if session.query(PlayersStories.id).filter(PlayersStories.story_id == group_id[0]).all():
+                list_characters = await find_list(group_id[0])
+                if list_characters:
+                    names, links = [], []
+                    for i in list_characters:
+                        names.append(i[0])
+                        links.append(i[1])
+                    await bot.send_message(chat_id=group_id[0],
+                                           text='Вот список всех Персонажей, выберите того, чей лист вы хотите посмотреть',
+                                           reply_markup=BotTools.construction_inline_keyboard_with_link(
+                                               list_name=names,
+                                               list_link=links,
+                                               private=False))
+                else:
+                    await bot.send_message(chat_id=group_id[0],
+                                           text='Никто из игроков ещё не привязал своего персонажа к этой игре!',
+                                           reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                               name_buttons=['Назад'],
+                                               cd=['menu']
+                                           ))
+                await call.message.delete()
+            else:
+                await bot.send_message(chat_id=group_id[0],
+                                       text='В данной компании ещё нет игроков!',
+                                       reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                           name_buttons=['Назад'],
+                                           cd=['menu']
+                                       ))
+                await call.message.delete()
+                return 0
+        else:
+            print(f'supergroup start_get_permissions - group not found')
+            await bot.send_message(chat_id=call.message.chat.id,
+                                   text='Компания не найдена в моей базе данных!',
+                                   reply_markup=BotTools.construction_inline_keyboard_for_supergroup(
+                                       name_buttons=['Назад'],
+                                       cd=['menu']
+                                   ))
+            await call.message.delete()
+            return 0

@@ -5,11 +5,8 @@ from States import states_create_character
 
 from Tools.BotTools import Tools
 from Tools.GoogleAPITools import GoogleTools
-from Tools.JsonTools import CatalogJson
-from Tools.MySqlTools import Connection
-from Tools.SQLiteTools import Connection as LiteConnection
+from SQL.Tables import MySQLSession, Characters, Verify
 
-import os
 from dotenv import load_dotenv
 
 GoogleTools = GoogleTools()
@@ -17,12 +14,6 @@ GoogleTools = GoogleTools()
 load_dotenv()
 
 BotTools = Tools()
-# con = Connection(host=env.read_json_data('DB_host'),
-#                  port=env.read_json_data('DB_port'),
-#                  database_name=env.read_json_data('DB_database'),
-#                  user=env.read_json_data('DB_user'),
-#                  password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 async def menu_characters(call: types.CallbackQuery):
@@ -39,49 +30,31 @@ async def menu_characters(call: types.CallbackQuery):
 
 
 async def list_characters(call: types.CallbackQuery):
-    # ids = con.work_with_MySQL([f'SELECT id FROM characters_list WHERE user_id='
-    #                           f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])
-    ids = l_con.work_with_SQLite([f'SELECT id FROM characters_list WHERE user_id='
-                                  f'(SELECT id FROM users WHERE user_id="{call.from_user.id}")'])
-    if len(ids) == 0:
-        await call.message.answer(f'У вас ещё нет созданных персонажей!',
-                                  reply_markup=BotTools.construction_inline_keyboard(
-                                      buttons=[['Создать персонажа', 'Назад'],
-                                               ['На главную']], call_back=[['new_character', 'Character'],
-                                                                           ['start']])
-                                  )
-    else:
-        # names = con.work_with_MySQL([f'SELECT name_character FROM characters_list '
-        #                              f'WHERE user_id = '
-        #                              f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")'])
-        # links = con.work_with_MySQL([f'SELECT link FROM characters_list '
-        #                              f'WHERE user_id = '
-        #                              f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")'])
-        names = l_con.work_with_SQLite([f'SELECT name_character FROM characters_list '
-                                        f'WHERE user_id = '
-                                        f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")'])
-        links = l_con.work_with_SQLite([f'SELECT link FROM characters_list '
-                                        f'WHERE user_id = '
-                                        f'(SELECT id FROM users WHERE user_id = "{call.from_user.id}")'])
-        await call.message.answer(f'Пожалуйста выберите интерисующий вас лист персонажа:',
-                                  reply_markup=BotTools.construction_inline_keyboard_with_link(
-                                      list_name=names,
-                                      list_link=links))
+    with MySQLSession.begin() as session:
+        if data_characters := session.query(Characters.name, Characters.link).filter_by(user_id=call.from_user.id).all():
+            names, links = [], []
+            for i in data_characters:
+                names.append(i[0])
+                links.append(i[1])
+            await call.message.answer(f'Пожалуйста выберите интерисующий вас лист персонажа:',
+                                      reply_markup=BotTools.construction_inline_keyboard_with_link(
+                                          list_name=names,
+                                          list_link=links))
+        else:
+            await call.message.answer(f'У вас ещё нет созданных персонажей!',
+                                      reply_markup=BotTools.construction_inline_keyboard(
+                                          buttons=[['Создать персонажа', 'Назад'],
+                                                   ['На главную']], call_back=[['new_character', 'Character'],
+                                                                               ['start']])
+                                      )
 
 
 def check_verify(user_id: str | int):
-    # mail = con.work_with_MySQL([f'Select gmail FROM verify '
-    #                             f'WHERE user_id = '
-    #                             f'(Select id FROM users '
-    #                             f'WHERE user_id = {user_id})'])
-    mail = l_con.work_with_SQLite([f'Select gmail FROM verify '
-                                   f'WHERE user_id = '
-                                   f'(Select id FROM users '
-                                   f'WHERE user_id = {user_id})'])
-    if mail:
-        return mail[0][0]
-    else:
-        return None
+    with MySQLSession.begin() as session:
+        if mail := session.query(Verify.gmail).filter_by(user_id=user_id).first():
+            return mail[0]
+        else:
+            return None
 
 
 async def new_sheet_character(call: types.CallbackQuery, state: FSMContext):
@@ -114,18 +87,18 @@ async def create_sheet_character(message: types.Message, state: FSMContext):
 
     await temp.delete()
     await state.update_data(name=message.text)
+    user_id = message.from_user.id
     data = await state.get_data()
     name_character = data['name']
     sheet = GoogleTools.create_item(item_name=name_character,
-                                    mail=f'{check_verify(message.from_user.id)}')
+                                    mail=f'{check_verify(user_id)}')
     web_link = sheet['webViewLink']
     sheet_id = sheet['id']
-    # con.work_with_MySQL([f'INSERT INTO characters_list(user_id, name_character, link, file_id)'
-    #                      f' VALUES((SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-    #                      f' "{name_character}", "{web_link}", "{sheet_id}")'])
-    l_con.work_with_SQLite([f'INSERT INTO characters_list(user_id, name_character, link, file_id)'
-                            f' VALUES((SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-                            f' "{name_character}", "{web_link}", "{sheet_id}")'])
+    with MySQLSession.begin() as session:
+        session.add(Characters(**{"id": sheet_id,
+                                  "user_id": user_id,
+                                  "name": name_character,
+                                  "link": web_link}))
     await message.answer(f'Ваш документ создан!\n'
                          f'Ссылка на лист персонажа: {web_link}',
                          reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],

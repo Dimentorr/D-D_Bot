@@ -60,12 +60,8 @@ class Tools:
         for i in range(len(list_name)):
             kb.append([])
             try:
-                if private:
-                    kb[i].append(types.InlineKeyboardButton(text=list_name[i][0],
-                                                            url=f'{list_link[i][0]}'))
-                else:
-                    kb[i].append(types.InlineKeyboardButton(text=list_name[i],
-                                                            url=f'{list_link[i]}'))
+                kb[i].append(types.InlineKeyboardButton(text=list_name[i],
+                                                        url=f'{list_link[i]}'))
 
             except Exception as err:
                 print(f'BotTools, err - {err}')

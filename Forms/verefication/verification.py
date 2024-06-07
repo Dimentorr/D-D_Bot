@@ -2,28 +2,19 @@ from aiogram import types
 
 from aiogram.fsm.context import FSMContext
 
-from Tools.MySqlTools import Connection
-from Tools.JsonTools import CatalogJson
 from Tools.GoogleAPITools import GoogleTools
 from Tools.BotTools import Tools
-from Tools.SQLiteTools import Connection as LiteConnection
+from SQL.Tables import MySQLSession, Verify
 
 from States import states_verifiction
 
 import random
 
-import os
 from dotenv import load_dotenv
 
 GoogleTools = GoogleTools()
 load_dotenv(dotenv_path='.env')
 BotTools = Tools()
-# con = Connection(host=env.read_json_data('DB_host'),
-#                  port=env.read_json_data('DB_port'),
-#                  database_name=env.read_json_data('DB_database'),
-#                  user=env.read_json_data('DB_user'),
-#                  password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 def verify_code(gmail: str):
@@ -52,19 +43,16 @@ async def start_verify(call: types.CallbackQuery):
 
 
 async def input_gmail(call: types.CallbackQuery, state: FSMContext):
-    query_log = ([f'SELECT gmail FROM verify '
-                  f'WHERE user_id = '
-                  f'(SELECT id FROM users WHERE user_id = {call.from_user.id})'])
-    # if con.work_with_MySQL(query_log):
-    if l_con.work_with_SQLite(query_log):
-        await call.message.answer('Вы уже прошли верефикацию!',
-                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
-                                                                                     call_back=['start']))
-    else:
-        await state.set_state(states_verifiction.StepsVerification.gmail)
-        await call.message.answer('Введите вашу Google почту:',
-                                  reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
-                                                                                     call_back=['start']))
+    with MySQLSession.begin() as session:
+        if session.query(Verify.gmail).filter_by(user_id=call.from_user.id).first():
+            await call.message.answer('Вы уже прошли верефикацию!',
+                                      reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
+                                                                                         call_back=['start']))
+        else:
+            await state.set_state(states_verifiction.StepsVerification.gmail)
+            await call.message.answer('Введите вашу Google почту:',
+                                      reply_markup=BotTools.construction_inline_keyboard(buttons=['Назад'],
+                                                                                         call_back=['start']))
     await call.answer()
     await call.message.delete()
 
@@ -75,7 +63,8 @@ async def input_code(message: types.Message, state: FSMContext):
         data = await state.get_data()
         await state.update_data(generate_code=verify_code(data['gmail']))
         await state.set_state(states_verifiction.StepsVerification.code)
-        await message.answer('Введите код подтверждения из письма:',
+        await message.answer('Введите код подтверждения из письма:\n'
+                             '(Проверьте папку "спам", если письма нет во входящих)',
                              reply_markup=BotTools.construction_inline_keyboard(
                                  buttons=['Назад', 'Отправить заново'],
                                  call_back=['start', 'repeat_generate_code_verify']))
@@ -100,21 +89,15 @@ async def check_data(message: types.Message, state: FSMContext):
                                                                                 call_back=['start',
                                                                                            'repeat_generate_code_verify']))
     else:
-        gmail = data['gmail']
-        # user_id = con.work_with_MySQL([f'SELECT id FROM users '
-        #                               f'WHERE user_id = "{message.from_user.id}"'])[0][0]
-        user_id = l_con.work_with_SQLite([f'SELECT id FROM users '
-                                          f'WHERE user_id = "{message.from_user.id}"'])[0][0]
         try:
-            # con.work_with_MySQL([f'INSERT INTO verify(gmail, user_id)'
-            #                     f' VALUES("{gmail}", {user_id})'])
-            l_con.work_with_SQLite([f'INSERT INTO verify(gmail, user_id)'
-                                    f' VALUES("{gmail}", {user_id})'])
-            await message.answer(f'Добро пожаловать в D&D бота!\n'
-                                 f'Пожалуйста, выберите интерисующий вас пункт',
-                                 reply_markup=BotTools.construction_inline_keyboard(buttons=['Персонажи', 'Компании'],
-                                                                                    call_back=['Character', 'Story'])
-                                 )
+            with MySQLSession.begin() as session:
+                session.add(Verify(**{"user_id": message.from_user.id,
+                                      "gmail": data['gmail']}))
+                await message.answer(f'Добро пожаловать в D&D бота!\n'
+                                     f'Пожалуйста, выберите интерисующий вас пункт',
+                                     reply_markup=BotTools.construction_inline_keyboard(buttons=['Персонажи', 'Компании'],
+                                                                                        call_back=['Character', 'Story'])
+                                     )
         except Exception as err:
             await message.answer(f'''Произошла ошибка:
 {err}

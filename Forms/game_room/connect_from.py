@@ -2,24 +2,18 @@ from aiogram import types
 from aiogram.fsm.context import FSMContext
 from datetime import datetime, timedelta
 
-from Tools.MySqlTools import Connection
 from Tools.BotTools import Tools
-from Tools.SQLiteTools import Connection as LiteConnection
+
+from SQL.Tables import MySQLSession, PlayersStories, GameStories
+from sqlalchemy import and_
 
 from States import states_connect_to
 
-import os
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path='.env')
 
 BotTools = Tools()
-# con = Connection(host=env.read_json_data('DB_host'),
-#                  port=env.read_json_data('DB_port'),
-#                  database_name=env.read_json_data('DB_database'),
-#                  user=env.read_json_data('DB_user'),
-#                  password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 async def linc_group_id(call: types.CallbackQuery, state: FSMContext):
@@ -48,72 +42,39 @@ async def linc_group_check(message: types.Message, state: FSMContext):
     data = await state.get_data()
     group = data['group_id']
     password = data['password']
+    user_id = message.from_user.id
 
-    try:
-        # check_GM = con.work_with_MySQL([f'SELECT user_id FROM users '
-        #                                 f'WHERE id = (SELECT GM_id FROM game_stories '
-        #                                 f'WHERE id = (SELECT id FROM game_stories '
-        #                                 f'WHERE id_group = "{group}" AND '
-        #                                 f'password = "{password}")'
-        #                                 f')'])[0][0]
-        check_GM = l_con.work_with_SQLite([f'SELECT user_id FROM users '
-                                           f'WHERE id = (SELECT GM_id FROM game_stories '
-                                           f'WHERE id = (SELECT id FROM game_stories '
-                                           f'WHERE id_group = "{group}" AND '
-                                           f'password = "{password}")'
-                                           f')'])[0][0]
-    except IndexError:
-        check_GM = -1
+    with MySQLSession.begin() as session:
+        if session.query(GameStories.id).filter(and_(GameStories.id == group,
+                                                     GameStories.password == password)).first():
 
-    try:
-        # check_user = con.work_with_MySQL([f'SELECT user_id FROM users '
-        #                                   f'WHERE id = (SELECT player_id FROM players_stories '
-        #                                   f'WHERE id = (SELECT id FROM game_stories '
-        #                                   f'WHERE id_group = "{group}" AND '
-        #                                   f'password = "{password}")'
-        #                                   f')'])[0][0]
-        check_user = l_con.work_with_SQLite([f'SELECT user_id FROM users '
-                                             f'WHERE id = (SELECT player_id FROM players_stories '
-                                             f'WHERE id = (SELECT id FROM game_stories '
-                                             f'WHERE id_group = "{group}" AND '
-                                             f'password = "{password}")'
-                                             f')'])[0][0]
-    except IndexError:
-        check_user = -1
+            check_GM = session.query(GameStories.gm_id).filter(and_(GameStories.id == group,
+                                                                    GameStories.password == password)).first()
+            check_user = session.query(PlayersStories.player_id).filter(and_(PlayersStories.player_id == user_id,
+                                                                             PlayersStories.story_id == group)).all()
+            print(f'check_GM: {check_GM}\n'
+                  f'check_user: {check_user}\n'
+                  f'{not check_user}')
+            if check_GM[0] != user_id and (not check_user or check_user[0] != user_id):
+                # expire_date = datetime.now() + timedelta(days=1)
+                await message.answer('Создание ссылки...')
+                link = await bot.create_chat_invite_link(chat_id=group, member_limit=1)
 
-    # is_group = con.work_with_MySQL(
-    #     [f'SELECT id FROM game_stories WHERE id_group="{group}" AND password="{password}"'])
-    is_group = l_con.work_with_SQLite(
-        [f'SELECT id FROM game_stories WHERE id_group="{group}" AND password="{password}"'])
-
-    if (message.from_user.id != int(check_GM)) and (message.from_user.id != int(check_user)) and is_group:
-        expire_date = datetime.now() + timedelta(days=1)
-        await message.answer('Создание ссылки...')
-        link = await bot.create_chat_invite_link(chat_id=group, expire_date=expire_date, member_limit=1)
-
-        await message.answer(f'Приятной игры!\n'
-                             f'Ваша ссылка для подключения к группе - {link.invite_link}',
-                             reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
-                                                                                call_back=['start'])
-                             )
-        # con.work_with_MySQL([f'INSERT INTO players_stories (player_id, story_id) '
-        #                      f'VALUES ('
-        #                      f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-        #                      f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
-        #                      f')'])
-        l_con.work_with_SQLite([f'INSERT INTO players_stories (player_id, story_id) '
-                                f'VALUES ('
-                                f'(SELECT id FROM users WHERE user_id = "{message.from_user.id}"),'
-                                f'(SELECT id FROM game_stories WHERE id_group = "{group}")'
-                                f')'])
-    elif (message.from_user.id == int(check_GM)) or (message.from_user.id == int(check_user)):
-        await message.answer('Вы уже являетесь участником этой компании!',
-                             reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
-                                                                                call_back=['start']))
-    else:
-        await message.answer('Неверный id или пароль группы!',
-                             reply_markup=BotTools.construction_inline_keyboard(buttons=[['Попробовать сново'],
-                                                                                         ['На главную']],
-                                                                                call_back=[['connect_to'],
-                                                                                           ['start']]))
+                await message.answer(f'Приятной игры!\n'
+                                     f'Ваша ссылка для подключения к группе - {link.invite_link}',
+                                     reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                        call_back=['start'])
+                                     )
+                session.add(PlayersStories(**{"player_id": user_id,
+                                              "story_id": group}))
+            elif check_GM[0] == user_id or check_user[0] == user_id:
+                await message.answer('Вы уже являетесь участником этой компании!',
+                                     reply_markup=BotTools.construction_inline_keyboard(buttons=['На главную'],
+                                                                                        call_back=['start']))
+        else:
+            await message.answer('Неверный id или пароль группы!',
+                                 reply_markup=BotTools.construction_inline_keyboard(buttons=[['Попробовать сново'],
+                                                                                             ['На главную']],
+                                                                                    call_back=[['connect_to'],
+                                                                                               ['start']]))
     await state.clear()

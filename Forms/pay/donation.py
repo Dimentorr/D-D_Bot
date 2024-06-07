@@ -2,9 +2,7 @@ from aiogram import types
 
 from aiogram.fsm.context import FSMContext
 
-from Tools.MySqlTools import Connection
 from Tools.BotTools import Tools
-from Tools.SQLiteTools import Connection as LiteConnection
 from Tools.YoomoneyTools import YooMoney
 
 from States import states_donate
@@ -16,12 +14,6 @@ load_dotenv(dotenv_path='.env')
 
 BotTools = Tools()
 YooMoney = YooMoney()
-# con = Connection(host=env.read_json_data('DB_host'),
-#                  port=env.read_json_data('DB_port'),
-#                  database_name=env.read_json_data('DB_database'),
-#                  user=env.read_json_data('DB_user'),
-#                  password=env.read_json_data('DB_password'))
-l_con = LiteConnection(path=os.getenv('path_sqlite_db'))
 
 
 async def info(call: types.CallbackQuery, state: FSMContext):
